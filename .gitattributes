@@ -1,0 +1,2 @@
+# pack/ is vendored byte-for-byte (two files are CRLF, three are LF). Git must never normalise it.
+pack/** -text

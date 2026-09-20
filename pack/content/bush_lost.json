@@ -1,0 +1,198 @@
+{
+  "_what_this_is": "THE BUSH TIER. A person lost on foot, or hurt and alone, in the backcountry. Sections are ordered stay-put first, on purpose: ERP_SURVIVAL_BRIEF.md section 4.1, 'a lost person who reads a search technique first will walk, and walking turns a short search into a long one.' Every item is VERIFIED unless marked otherwise. Items marked withheld are named, not silently missing - see safety/hard_lines.json for the full reasoning on each.",
+  "_zero_signal": "Every action below is static text with no field a model can rewrite and no field a reader's own situation can be typed into.",
+  "version": 1,
+  "product": "erp",
+  "tier": "bush",
+
+  "scenario_id": "bush_lost_on_foot",
+  "title_en": "Lost on foot, or hurt and alone, in the backcountry",
+  "who_this_is_for_en": "You are lost, or hurt, or overdue, away from a road.",
+
+  "sections": [
+    {
+      "section_id": "stay_put",
+      "title_en": "Stay where you are",
+      "actions": [
+        {
+          "id": "bush_stay_put",
+          "order": 1,
+          "text_en": "The published guidance is stay put. Moving makes you harder to find, and turns a short search into a long one.",
+          "source_id": "bush_stay_put"
+        },
+        {
+          "id": "bush_trip_plan",
+          "order": 2,
+          "text_en": "Stay put works because someone is coming. Before you go anywhere, tell a specific person where you are going and when you will be back - that is what turns 'stay put' from a hope into a strategy.",
+          "source_id": "bush_trip_plan"
+        }
+      ],
+      "withheld": [
+        {"id": "bush_deviation_withheld", "reason_id": "no_deviation_guidance"}
+      ]
+    },
+    {
+      "section_id": "being_found",
+      "title_en": "Being found is the actual job",
+      "actions": [
+        {
+          "id": "bush_groups_of_three",
+          "order": 1,
+          "text_en": "Any distress signal works in groups of three - three sounds, three fires, three flashes - with a pause between each group, so it reads as a signal rather than noise.",
+          "source_id": "bush_groups_of_three"
+        },
+        {
+          "id": "bush_visual_signal_size",
+          "order": 2,
+          "text_en": "A ground signal is easiest to see from the air if it is at least 3 metres wide, and 10 metres long if you can manage it, with clear space around it. Straight lines and geometric shapes read as human-made long before anyone can see detail.",
+          "source_id": "bush_visual_signal_size"
+        },
+        {
+          "id": "bush_stay_with_signal",
+          "order": 3,
+          "text_en": "Stay close to whatever you are using to signal - a fire, a marker - so you do not miss being seen while you are away from it.",
+          "source_id": "bush_stay_with_signal"
+        },
+        {
+          "id": "bush_shelter_tradeoff",
+          "order": 4,
+          "text_en": "A shelter keeps you warm, and a shelter can also hide you from searchers by blending into the terrain. This is a real trade-off and no source resolves it for you - use judgement about which risk is worse for your situation.",
+          "source_id": "bush_shelter_tradeoff"
+        },
+        {
+          "id": "bush_whistle_over_voice",
+          "order": 5,
+          "text_en": "A whistle carries farther and costs less energy than shouting. Blow it in groups of three, then stop and listen - do not blow continuously, or you will not hear a searcher answering.",
+          "source_id": "bush_whistle_over_voice"
+        }
+      ],
+      "withheld": [
+        {"id": "bush_ground_to_air_chart_withheld", "reason_id": "no_ground_to_air_signal_chart"},
+        {"id": "bush_movement_attracts_eye_withheld", "reason_id": "no_movement_attracts_the_eye_claim"}
+      ]
+    },
+    {
+      "section_id": "phone",
+      "title_en": "Your phone",
+      "actions": [
+        {
+          "id": "bush_phone_911_any_tower",
+          "order": 1,
+          "text_en": "In Canada, an emergency call goes through even with no cellular plan at all - it connects through any carrier's tower in range, not only your own. No bars is not the same as no 911.",
+          "source_id": "bush_phone_911_any_tower"
+        },
+        {
+          "id": "bush_phone_no_text_911",
+          "order": 2,
+          "text_en": "Texting 911 is not generally available in Canada. It is a registered service for people who are deaf, hard of hearing, or speech impaired, and you must dial first to use it. Do not count on texting 911 if you cannot get a voice call out.",
+          "source_id": "bush_phone_no_text_911"
+        }
+      ],
+      "withheld": [
+        {"id": "bush_phone_on_or_off_withheld", "reason_id": "no_on_foot_phone_instruction"}
+      ]
+    },
+    {
+      "section_id": "water",
+      "title_en": "Water",
+      "actions": [
+        {
+          "id": "bush_boil_water",
+          "order": 1,
+          "text_en": "A rolling boil for one minute makes water from an unknown source safe from bacteria, protozoa and viruses. Above 2000 metres, boil for at least two minutes.",
+          "source_id": "bush_boil_water"
+        },
+        {
+          "id": "bush_boiling_does_not_fix_everything",
+          "order": 2,
+          "text_en": "Boiling does not make water safe from fuel, chemicals, or radioactive contamination. If you know the source is fouled that way, boiling will not fix it.",
+          "source_id": "bush_boiling_does_not_fix_everything"
+        },
+        {
+          "id": "bush_do_not_eat_snow",
+          "order": 3,
+          "text_en": "Eating snow without melting it first lowers your body temperature. Melt it, then treat it the same as any other water.",
+          "source_id": "bush_do_not_eat_snow"
+        }
+      ]
+    },
+    {
+      "section_id": "direction",
+      "title_en": "Direction, and its real limits",
+      "actions": [
+        {
+          "id": "bush_keep_one_reference",
+          "order": 1,
+          "text_en": "People who cannot see the sun and have nothing to steer by reliably walk in circles, even in open ground - this has been measured. The single most useful thing you can do is pick one fixed point - the sun, a distant landmark, a consistent compass reading - and keep checking against it, rather than trying to compute an exact bearing.",
+          "source_id": "bush_keep_one_reference"
+        },
+        {
+          "id": "bush_phone_compass_limits",
+          "order": 2,
+          "text_en": "A phone compass with no GPS fix can only give you magnetic direction, not true north - the phone makers' own documentation says so. In northern Canada especially, magnetic direction can be off by several degrees or more, and it gets less reliable the further north you go. Do not trust a precise-looking number on a screen; use it only to hold a rough, consistent direction.",
+          "source_id": "bush_phone_compass_limits"
+        }
+      ],
+      "withheld": [
+        {"id": "bush_navigation_technique_withheld", "reason_id": "no_navigation_technique_for_someone_currently_lost"}
+      ]
+    },
+    {
+      "section_id": "folklore",
+      "title_en": "What does not actually point north",
+      "actions": [
+        {
+          "id": "bush_moss_debunked",
+          "order": 1,
+          "text_en": "Moss growing more on one side of a tree does not reliably point north. Many things besides direction affect where moss grows.",
+          "source_id": "bush_moss_debunked"
+        },
+        {
+          "id": "bush_tree_branches_debunked",
+          "order": 2,
+          "text_en": "Tree branches or growth pointing a reliable direction does not hold up either - trees have branches pointing every direction, and this method is not as reliable as a compass.",
+          "source_id": "bush_tree_branches_debunked"
+        },
+        {
+          "id": "bush_folklore_unresolved",
+          "order": 3,
+          "text_en": "We could not find a source, in either direction, on whether tree ring spacing, snow melt patterns, or which way the wind usually blows can tell you which way is north. We are not saying they work and we are not saying they do not - we found nothing either way, and we would rather say that than guess.",
+          "source_id": "bush_folklore_unresolved"
+        }
+      ]
+    },
+    {
+      "section_id": "food",
+      "title_en": "Food",
+      "actions": [
+        {
+          "id": "bush_no_food_identification",
+          "order": 1,
+          "text_en": "This pack will not tell you whether a plant, mushroom, or fish is safe to eat. Tested identification apps have been measured misidentifying poisonous species as edible, including the mushroom that kills the most people worldwide. A wrong call here can be fatal in a way that waiting on food is not. You can go far longer without food than most people expect. Getting found matters more.",
+          "source_id": "bush_no_food_identification"
+        }
+      ]
+    },
+    {
+      "section_id": "radio",
+      "title_en": "Radio",
+      "actions": [
+        {
+          "id": "bush_radio_licence_exempt",
+          "order": 1,
+          "text_en": "In Canada, FRS and GMRS radios, and CB radios on channel 9, can be used for emergency communication without a licence. Marine VHF channel 16 is monitored by the Coast Guard around the clock.",
+          "source_id": "bush_radio_licence_exempt"
+        },
+        {
+          "id": "bush_radio_beacon",
+          "order": 2,
+          "text_en": "If you carry one, a 406 MHz personal locator beacon is the most reliable way to summon help with no cell signal at all - any signal it sends is treated as a real distress call.",
+          "source_id": "bush_radio_beacon"
+        }
+      ],
+      "withheld": [
+        {"id": "bush_radio_legal_unresolved", "reason_id": "no_radio_legal_position"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# stdin/stdout mode: nothing. Python 3.10+ standard library only.
+
+# [lxmf] mode only:
+rns
+lxmf
+
+# --sign only: arrowenvelope (not on PyPI yet; a sibling checkout of arrowmem-envelope or
+# PYTHONPATH) and its one dependency:
+# cryptography
