@@ -139,4 +139,12 @@ by ArrowMem for publication. See `pack/SOURCE.md` for the current status.
 ## About
 
 ArrowMem (arrowmem.ca) is a private assistant that runs on your own hardware. This node is its
-free survival layer: the part that has to work when nothing else does.
+survival layer: the part that has to work when nothing else does.
+
+If you run this on a box that is always on and want to know what else that box is exposing,
+ArrowMem Guard (arrowmem.ca/guard.html) is the same team's machine sweep. It is separate from
+this node and optional.
+
+This node is standalone software and it is the only place this content is answered today. The
+ArrowMem assistant does not yet provide guided emergency support, and nothing here should be
+read as saying it does.
