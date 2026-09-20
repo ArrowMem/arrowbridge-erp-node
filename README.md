@@ -16,9 +16,10 @@ here is plaintext-safe and can be chunked to a frame budget.
 - **Not a model.** Nothing is generated, summarised, paraphrased or shortened. A command maps to
   a string in `pack/`, byte for byte, or to the one navigation reply below. Free text is never
   interpreted.
-- **Not private on an open radio leg.** Amateur HF is plaintext by law. This content contains
-  no personal information and takes no reader input, which is why it can go over that leg at
-  all. Do not put anything else through the same pipe and call it private.
+- **Not private on an open radio leg.** The crosstalk HF leg carries plaintext by their design,
+  readable by anyone with a receiver. This content contains no personal information and takes
+  no reader input, which is why it can go over that leg at all. Do not put anything else
+  through the same pipe and call it private.
 - **Not a route, a wait time, an alert feed or a shelter finder.** Those need a network. This
   is the zero-signal half only.
 
