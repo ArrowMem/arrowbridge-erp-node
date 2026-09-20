@@ -14,8 +14,8 @@ from pathlib import Path
 NUM = re.compile(r"[0-9]+")  # not int(): int() accepts "-1", "1_0" and non-ASCII digits
 UNKNOWN = "Unknown command. Send ERP for the menu."
 # The floor under every unknown command is the pack's own first-aid refusal, verbatim (it ends
-# in "call 911"). mvf-backend's R-255 holding text was NOT adopted: it says guided support "is
-# not available in this tool yet" and points at "resources below", both false on this node.
+# in "call 911"). A prior holding-text draft was rejected here: it said guided support "is
+# not available in this tool yet" and pointed at "resources below", both false on this node.
 FLOOR_ID = "no_trauma_or_first_aid_content"
 
 

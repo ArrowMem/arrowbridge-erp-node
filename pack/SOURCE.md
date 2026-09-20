@@ -1,7 +1,7 @@
 # pack/ is the ArrowMem ERP pack, vendored unchanged
 
 The files in this directory are the ArrowMem ERP (survival and emergency basics) content
-pack, `pack_id` `erp`, `generation` 1, as recorded in `manifest.json` here. They were
+pack, `pack_id` `erp`, `generation` 2, as recorded in `manifest.json` here. They were
 copied byte-for-byte from the pack's own repository:
 
 - `manifest.json`

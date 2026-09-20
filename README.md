@@ -133,8 +133,8 @@ The code in this repository is MIT, ArrowMem Inc. 2026; see `LICENSE`.
 
 ### Content licence
 
-The pack content under `pack/` is licensed separately. Its licence is stated in
-`pack/SOURCE.md`.
+The pack content under `pack/` is licensed separately, and that licence is not yet confirmed
+by ArrowMem for publication. See `pack/SOURCE.md` for the current status.
 
 ## About
 
