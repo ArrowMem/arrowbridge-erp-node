@@ -16,6 +16,7 @@ import threading
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import erp_node
 
@@ -505,6 +506,25 @@ class LxmfPeerMode(unittest.TestCase):
         self.assertFalse(erp_node.record_holds(b"peerC", other_id, our_id, held))
         self.assertEqual(held, {})
         self.assertEqual(erp_node.lxmf_mode(b"peerC", held, "plain"), "plain")
+
+    def test_load_content_optional_returns_none_on_missing_arrowcontent(self):
+        # Regression: --lxmf must not hard-require arrowcontent (a plain-only node needs
+        # only rns/lxmf). Patch the import to fail exactly as a clean checkout with no
+        # sibling arrowmem-envelope would, and check the graceful (None, None), no traceback.
+        with mock.patch.object(erp_node, "load_content", side_effect=ImportError("no module named arrowcontent")):
+            self.assertEqual(erp_node.load_content_optional(str(PACK)), (None, None))
+
+    def test_load_content_optional_passes_through_when_present(self):
+        ac_mod, dictionary = object(), object()
+        with mock.patch.object(erp_node, "load_content", return_value=(ac_mod, dictionary)):
+            self.assertEqual(erp_node.load_content_optional(str(PACK)), (ac_mod, dictionary))
+
+    def test_looks_like_holds_shape_check(self):
+        self.assertTrue(erp_node.looks_like_holds(b"\x05" + b"\x11" * 8))
+        self.assertTrue(erp_node.looks_like_holds(b"\x05" + b"\x11" * 8 + b"\x00\x00"))  # padded
+        self.assertFalse(erp_node.looks_like_holds(b"\x05" + b"\x11" * 7))  # too short
+        self.assertFalse(erp_node.looks_like_holds(b"ERP BASIC 1"))
+        self.assertFalse(erp_node.looks_like_holds(b""))
 
 
 def free_port():

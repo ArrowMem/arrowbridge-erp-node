@@ -160,6 +160,19 @@ def load_content(pack_dir):
     return ac, dictionary
 
 
+def load_content_optional(pack_dir):
+    """Like load_content, but for --lxmf: arrowcontent is an optional extra there, not a
+    hard requirement. A plain-only LXMF node must keep working from `pip install rns lxmf`
+    alone, no sibling arrowmem-envelope checkout, exactly as before the 0x05 HOLDS feature
+    existed. Returns (None, None) on ImportError instead of raising; the caller logs it once
+    and runs plain-only for the rest of the session, never a silent fallback and never a
+    traceback out of the missing import."""
+    try:
+        return load_content(pack_dir)
+    except ImportError:
+        return None, None
+
+
 def content_index(ac, pack):
     """object id -> reply bytes, for every reply the closed grammar can emit. Built locally
     from the running pack, never trusted from the wire (SPEC-CONTENT.md 0x03)."""
@@ -323,7 +336,15 @@ def lxmf_mode(peer_hash, held_peers, content_mode):
     return "dict" if peer_hash in held_peers else content_mode
 
 
-def serve_lxmf(pack, max_chars, seal, configdir, content_mode="plain", ac=None, dictionary=None):
+def looks_like_holds(content):
+    """True if content is shaped like a 0x05 HOLDS frame (0x05 prefix, at least 9 bytes),
+    without needing arrowcontent to check it for real. Used only when the content machinery
+    failed to import, so a bare 0x05 can still be recognised and logged as ignored instead
+    of silently falling through to reply() and being answered as an unknown command."""
+    return content[:1] == b"\x05" and len(content) >= 9
+
+
+def serve_lxmf(pack, max_chars, seal, configdir, content_mode, pack_dir):
     """Announce an LXMF destination "ArrowMem ERP"; answer every inbound message's content
     through reply(), one LXMF message per chunk, back to the sender.
 
@@ -347,6 +368,13 @@ def serve_lxmf(pack, max_chars, seal, configdir, content_mode="plain", ac=None, 
     (it gets `unknown dictionary` from its own decoder, or unparseable binary if it runs no
     arrowcontent decoder at all), never wrong content and never plaintext exposure of
     anything the peer did not already ask for.
+
+    arrowcontent is OPTIONAL here (unlike --content ref/dict on stdin, which requires it): a
+    plain-only LXMF node needs only `pip install rns lxmf`, no sibling arrowmem-envelope
+    checkout, exactly as before this feature existed. If the import fails, one line is
+    logged at RNS.LOG_NOTICE naming it, and the whole session runs plain-only: a 0x05 that
+    then arrives is recognised by shape (looks_like_holds) and logged as ignored, never
+    silently swallowed and never a traceback.
     """
     import LXMF
     import RNS
@@ -360,6 +388,10 @@ def serve_lxmf(pack, max_chars, seal, configdir, content_mode="plain", ac=None, 
     router = LXMF.LXMRouter(identity=identity, storagepath=str(store))
     me = router.register_delivery_identity(identity, display_name="ArrowMem ERP")
     held_peers = {}  # source hash -> the dictionary id that peer announced holding
+    ac, dictionary = load_content_optional(pack_dir)
+    if ac is None:
+        RNS.log("ERP: arrowcontent not found: 0x05 announces will be recorded but "
+                "answered in plain text", RNS.LOG_NOTICE)
 
     def answer(msg):
         if ac and dictionary:
@@ -374,6 +406,10 @@ def serve_lxmf(pack, max_chars, seal, configdir, content_mode="plain", ac=None, 
                     RNS.log(f"ERP: 0x05 HOLDS for unknown id {peer_id.hex()} from "
                             + RNS.prettyhexrep(msg.source_hash), RNS.LOG_NOTICE)
                 return
+        elif looks_like_holds(msg.content):
+            RNS.log("ERP: 0x05 HOLDS from " + RNS.prettyhexrep(msg.source_hash)
+                    + " ignored: arrowcontent not available", RNS.LOG_NOTICE)
+            return
         dest = msg.source  # set by LXMF when the sender has announced; else ask the network
         if dest is None:
             RNS.Transport.request_path(msg.source_hash)
@@ -431,16 +467,16 @@ def main(argv=None):
         p.error("--every is stdin/stdout mode only")
     pack, seal = load_pack(a.pack), sealer(a.sign) if a.sign else None
     ac = dictionary = index = None
-    # --lxmf always loads the content machinery (needed for the 0x05 HOLDS peer-tracking
-    # protocol regardless of --content), a new startup dependency --lxmf did not have before:
-    # it now needs the sibling arrowmem-envelope checkout the same way --content ref/dict does.
-    if a.content != "plain" or a.decode or a.lxmf:
-        ac, dictionary = load_content(a.pack)
+    if a.content != "plain" or a.decode:
+        ac, dictionary = load_content(a.pack)  # hard requirement here, same as before
     if a.decode:  # index is only ever read by decode_stdin
         index = content_index(ac, pack)
         decode_stdin(ac, dictionary, index)
     elif a.lxmf:
-        serve_lxmf(pack, a.max_chars, seal, a.config, a.content, ac, dictionary)
+        # arrowcontent is optional for --lxmf (load_content_optional, inside serve_lxmf):
+        # a plain-only LXMF node keeps working with only rns/lxmf installed, no sibling
+        # arrowmem-envelope checkout, same as before the 0x05 HOLDS feature existed.
+        serve_lxmf(pack, a.max_chars, seal, a.config, a.content, a.pack)
     else:
         serve_stdin(pack, a.max_chars, seal, a.content, ac, dictionary, a.pad, a.every)
 

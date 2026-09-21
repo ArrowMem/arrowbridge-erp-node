@@ -75,10 +75,12 @@ directory, so it survives restarts. It re-announces every 30 minutes. A sender t
 never heard announce gets a path request and up to two minutes of patience before the reply is
 dropped with a log line.
 
-**`--lxmf` now always loads the content machinery** (the sibling `arrowmem-envelope` checkout
-and a built `pack.dict`), for the 0x05 HOLDS protocol below, regardless of `--content`. This is
-a new startup dependency `--lxmf` did not have before: plain-only LXMF use now needs the same
-sibling checkout `--content ref`/`--content dict` always needed.
+The sibling `arrowmem-envelope` checkout (see "Faster frames" below) is needed only for
+compressed replies, same as before: a plain-only `--lxmf` node still needs only `pip install
+rns lxmf`. If that checkout is missing, `--lxmf` logs one line at start (`arrowcontent not
+found: 0x05 announces will be recorded but answered in plain text`) and runs plain-only for
+the whole session; a 0x05 HOLDS frame that arrives after that is logged as ignored, never a
+traceback.
 
 ## Chunking and the radio budget
 
