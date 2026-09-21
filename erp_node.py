@@ -5,6 +5,7 @@ string from pack/ (see pack/SOURCE.md). The only authored strings are navigation
 """
 import argparse
 import json
+import os
 import re
 import sys
 import threading
@@ -176,6 +177,92 @@ def content_frames(ac, dictionary, mode, text, max_chars):
     return [ac.build_compressed(dictionary, part.encode("utf-8")) for part in chunk(text, max_chars)]
 
 
+def apply_pad(data, n):
+    """Fixed-size frames, layer 1.3 of SIGNED_BEACON_PRIVACY_LAYERS_2026-09-20.md: pad a
+    binary frame to exactly n bytes with a trailing all-zero tail (arrowcontent's decoders
+    accept and strip it), removing the message-length signal. Never truncates: a frame
+    already at or over n bytes is a named error, not a silent cut."""
+    if n <= 0:
+        return data
+    if len(data) > n:
+        raise ValueError(f"frame of {len(data)} bytes exceeds --pad {n}")
+    return data + b"\x00" * (n - len(data))
+
+
+def apply_pad_text(text, n):
+    """Same fixed-size rule for the unsealed plain-text fallback line. Trailing spaces, not
+    trailing newlines: SPEC-CONTENT.md "Padding" pads plain text with spaces because a
+    trailing newline can read as starting a new line of content where a space cannot."""
+    if n <= 0:
+        return text
+    nb = len(text.encode("utf-8"))
+    if nb > n:
+        raise ValueError(f"chunk of {nb} bytes exceeds --pad {n}")
+    return text + " " * (n - nb)
+
+
+def render_reply(pack, line, max_chars, seal, content_mode, ac, dictionary, pad):
+    """One stdin command in, one output block out: every frame or chunk line for that
+    reply, each hex-encoded if binary, then a blank line terminator. Shared by the
+    immediate (serve_stdin) and scheduled (--every) paths so padding and framing logic
+    lives in exactly one place."""
+    text = reply(pack, line)
+    out = []
+    if content_mode != "plain":
+        for frame in content_frames(ac, dictionary, content_mode, text, max_chars):
+            wire = apply_pad(seal(frame) if seal else frame, pad)
+            out.append(wire.hex() + "\n")
+    else:
+        for part in chunk(text, max_chars):
+            if seal:
+                out.append(apply_pad(seal(part.encode("utf-8")), pad).hex() + "\n")
+            else:
+                padded = apply_pad_text(part, pad)
+                out.append(padded + ("" if padded.endswith("\n") else "\n"))
+    out.append("\n")
+    return "".join(out)
+
+
+def serve_stdin_scheduled(pack, max_chars, seal, content_mode, ac, dictionary, pad, every):
+    """--every S: queue rendered replies as they finish, but only write them at the next
+    tick of a fixed cadence started at process start (layer 1.4 of
+    SIGNED_BEACON_PRIVACY_LAYERS_2026-09-20.md: decouples when someone asked from when
+    something moved). A tick with nothing queued writes nothing: no cover traffic. Sending
+    a contentless frame just to fill a tick is its own FCC identification question
+    (97.113(b)) this change does not open; the README says so too."""
+    import queue as queue_mod
+    q = queue_mod.Queue()
+    DONE = object()
+
+    def reader():
+        try:
+            for raw in sys.stdin:
+                if raw.strip():
+                    q.put(render_reply(pack, raw, max_chars, seal, content_mode, ac, dictionary, pad))
+        except Exception as e:  # fail loudly from the background thread, never hang silently
+            sys.stderr.write(f"erp_node: {e}\n")
+            sys.stderr.flush()
+            os._exit(1)
+        q.put(DONE)
+
+    t = threading.Thread(target=reader, daemon=True)
+    t.start()
+    start, tick, done = time.monotonic(), 1, False
+    while not done:
+        time.sleep(max(0.0, start + tick * every - time.monotonic()))
+        tick += 1
+        while True:
+            try:
+                item = q.get_nowait()
+            except queue_mod.Empty:
+                break
+            if item is DONE:
+                done = True
+            else:
+                sys.stdout.write(item)
+                sys.stdout.flush()
+
+
 def decode_stdin(ac, dictionary, index):
     """--decode: one hex content frame per non-blank stdin line. Prints decoded text, or the
     spec's named error string, one per line; exit code is non-zero if any line errored."""
@@ -201,24 +288,21 @@ def decode_stdin(ac, dictionary, index):
     sys.exit(exit_code)
 
 
-def serve_stdin(pack, max_chars, seal, content_mode="plain", ac=None, dictionary=None):
+def serve_stdin(pack, max_chars, seal, content_mode="plain", ac=None, dictionary=None,
+                 pad=0, every=0.0):
     """One command per line in; the reply's chunks, one blank line after each reply, out.
     With --sign each chunk is one line of hex (a sealed chunk is binary and may contain 0x0A).
     With --content ref/dict, every line is a content frame: always binary, so always hex,
-    signed or not, same one-frame-per-line shape as the signed plain path."""
+    signed or not, same one-frame-per-line shape as the signed plain path. --pad fixes every
+    emitted frame or chunk to N bytes; --every delays output to a fixed cadence instead of
+    writing the moment a reply is ready (see serve_stdin_scheduled)."""
     sys.stdout.reconfigure(encoding="utf-8", newline="\n")
+    if every:
+        return serve_stdin_scheduled(pack, max_chars, seal, content_mode, ac, dictionary, pad, every)
     for line in sys.stdin:
         if not line.strip():
             continue
-        text = reply(pack, line)
-        if content_mode != "plain":
-            for frame in content_frames(ac, dictionary, content_mode, text, max_chars):
-                sys.stdout.write((seal(frame) if seal else frame).hex() + "\n")
-        else:
-            for part in chunk(text, max_chars):
-                sys.stdout.write(seal(part.encode("utf-8")).hex() + "\n" if seal
-                                  else part + ("" if part.endswith("\n") else "\n"))
-        sys.stdout.write("\n")
+        sys.stdout.write(render_reply(pack, line, max_chars, seal, content_mode, ac, dictionary, pad))
         sys.stdout.flush()
 
 
@@ -270,7 +354,20 @@ def main(argv=None):
                          "content reference), dict (0x04 dictionary-compressed)")
     p.add_argument("--decode", action="store_true",
                     help="read hex content frames from stdin, print decoded text or named errors")
+    p.add_argument("--pad", type=int, default=0,
+                    help="pad every emitted frame or plain chunk to exactly N bytes (off by "
+                         "default); requires --max-chars, and N must be >= --max-chars")
+    p.add_argument("--every", type=float, default=0.0,
+                    help="stdin/stdout only: write replies only at this fixed-cadence tick in "
+                         "seconds, instead of the moment each is ready (off by default; no "
+                         "cover traffic, a silent tick writes nothing)")
     a = p.parse_args(argv)
+    if a.pad and not a.max_chars:
+        p.error("--pad requires --max-chars")
+    if a.pad and a.pad < a.max_chars:
+        p.error("--pad must be >= --max-chars")
+    if a.every and (a.lxmf or a.decode):
+        p.error("--every is stdin/stdout mode only, like --content")
     pack, seal = load_pack(a.pack), sealer(a.sign) if a.sign else None
     ac = dictionary = index = None
     if a.content != "plain" or a.decode:
@@ -281,7 +378,7 @@ def main(argv=None):
     elif a.lxmf:
         serve_lxmf(pack, a.max_chars, seal, a.config)
     else:
-        serve_stdin(pack, a.max_chars, seal, a.content, ac, dictionary)
+        serve_stdin(pack, a.max_chars, seal, a.content, ac, dictionary, a.pad, a.every)
 
 
 if __name__ == "__main__":

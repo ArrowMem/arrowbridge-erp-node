@@ -173,6 +173,41 @@ A published algorithm (RFC 1951) against a published, content-addressed dictiona
 nothing; see `arrowmem-envelope/SPEC-CONTENT.md` "Legal reading" for the full statutory text
 this reasoning rests on.
 
+## Privacy on an open leg (optional, off by default)
+
+`--pad N` fixes every emitted frame or plain chunk to exactly N bytes with a trailing pad
+(zero bytes for a binary frame, spaces for the unsealed plain-text fallback), so a listener
+sees the same size every time regardless of what a reply actually contains. This removes the
+message-length signal, the cheapest traffic-analysis input there is, and it obscures no
+meaning: the content is exactly what it was, just measured out to a fixed size. What it
+costs is the air time compression saves: at `--pad 200` every frame is 200 bytes, about 32
+seconds at 0.16 s per byte, against the measured sizes in the table above, where the whole
+point of `--content dict` was to make most replies far smaller than that. Padding and
+dictionary compression pull in opposite directions on the same byte; how much of the
+compression saving to spend back on flattening the length signal is a per-link operator
+choice, not one this code makes for you. N must be at least `--max-chars`, checked at
+startup, and a frame that would exceed N is a hard error, never a silent truncation.
+
+`--every S` queues each reply as it finishes and writes it only at the next tick of a fixed
+cadence that starts when the process starts, instead of the moment it is ready. This breaks
+the timing correlation between when a question went out and when an answer came back: a
+listener sees transmissions on a schedule, not on demand. A tick with nothing queued writes
+nothing: this node never fills a silent tick with a contentless frame just to keep the
+cadence looking busy, because that is its own question under FCC 97.113(b) (station
+identification on an emission with no content) that this change does not open.
+
+Neither of these hides who is transmitting or what a decoded frame says once someone has the
+right dictionary or corpus. What a listener still learns, even with both on: that a station
+identified by its call sign, which the law requires and no setting here can hide, transmitted
+a fixed-size frame at a scheduled time. The one thing that stays hidden for free is who the
+frame is for: a destination is a hash (Reticulum's own property, not this code's), so nothing
+on the air names a recipient. See `SIGNED_BEACON_PRIVACY_LAYERS_2026-09-20.md` for the full
+layer stack and the legal reasoning behind treating this as a beacon rather than a channel to
+secure.
+
+    python3 erp_node.py --pack pack --content ref --max-chars 127 --pad 200
+    python3 erp_node.py --pack pack --every 5
+
 ## Signing (optional, off by default)
 
     PYTHONPATH=../arrowmem-envelope python3 -m arrowenvelope keygen node.key

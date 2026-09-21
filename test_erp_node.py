@@ -367,6 +367,112 @@ class ContentFrames(unittest.TestCase):
         self.assertEqual(out.stdout.decode("ascii").strip(), "bad inflate")
 
 
+class Padding(unittest.TestCase):
+    def test_red_pad_smaller_than_frame_raises_not_truncates(self):
+        # RED FIRST: a --pad that silently truncated an oversized frame would corrupt it;
+        # it must instead fail loudly, and it must not be reachable via truncation at all.
+        with self.assertRaises(ValueError):
+            erp_node.apply_pad(b"abcdef", 3)
+        with self.assertRaises(ValueError):
+            erp_node.apply_pad_text("abcdef", 3)
+
+    def test_apply_pad_fixed_size_round_trip(self):
+        frame = b"\x04" + b"\x00" * 8 + b"x"
+        padded = erp_node.apply_pad(frame, 20)
+        self.assertEqual(len(padded), 20)
+        self.assertTrue(padded.endswith(b"\x00" * (20 - len(frame))))
+        self.assertEqual(padded[:len(frame)], frame)
+
+    def test_apply_pad_zero_n_is_a_no_op(self):
+        self.assertEqual(erp_node.apply_pad(b"abc", 0), b"abc")
+        self.assertEqual(erp_node.apply_pad_text("abc", 0), "abc")
+
+    def test_apply_pad_text_uses_spaces_not_newlines(self):
+        padded = erp_node.apply_pad_text("hi", 5)
+        self.assertEqual(padded, "hi   ")
+
+    def test_pad_content_frames_round_trip_after_strip_ref_and_dict(self):
+        ac, dictionary = erp_node.load_content(str(PACK))
+        index = erp_node.content_index(ac, pack)
+        dictionaries = {ac.content_id(dictionary): dictionary}
+        for cmd, text in GRAMMAR.items():
+            for frame in erp_node.content_frames(ac, dictionary, "ref", text, 127):
+                padded = erp_node.apply_pad(frame, 200)
+                self.assertEqual(len(padded), 200)
+                self.assertEqual(ac.resolve_reference(padded, dictionary, index), text.encode("utf-8"))
+            expected_parts = erp_node.chunk(text, 127)
+            for frame, part in zip(erp_node.content_frames(ac, dictionary, "dict", text, 127), expected_parts):
+                padded = erp_node.apply_pad(frame, 200)
+                self.assertEqual(len(padded), 200)
+                self.assertEqual(ac.decode_compressed(padded, dictionaries), part.encode("utf-8"))
+
+    def test_pad_plain_chunk_strip_round_trip(self):
+        for cmd, text in GRAMMAR.items():
+            for part in erp_node.chunk(text, 127):
+                padded = erp_node.apply_pad_text(part, 200)
+                self.assertEqual(len(padded.encode("utf-8")), 200)
+                self.assertEqual(padded.rstrip(" "), part.rstrip(" "))
+
+    def test_argparse_refuses_pad_below_max_chars(self):
+        out = run_node("--max-chars", "50", "--pad", "40", stdin_text="ERP\n")
+        self.assertNotEqual(out.returncode, 0)
+        self.assertIn(b"--pad", out.stderr)
+
+    def test_argparse_refuses_pad_without_max_chars(self):
+        out = run_node("--pad", "50", stdin_text="ERP\n")
+        self.assertNotEqual(out.returncode, 0)
+        self.assertIn(b"--pad", out.stderr)
+
+    def test_cli_pad_produces_fixed_length_frames(self):
+        out = run_node("--max-chars", "127", "--pad", "200", "--content", "ref", stdin_text="ERP BASIC 3\n")
+        self.assertEqual(out.returncode, 0, out.stderr)
+        lines = [l for l in out.stdout.decode("ascii").splitlines() if l]
+        self.assertEqual(len(lines), 1)
+        self.assertEqual(len(bytes.fromhex(lines[0])), 200)
+
+
+class Scheduling(unittest.TestCase):
+    def test_output_appears_at_the_tick_not_before(self):
+        # A single reply queued immediately must not appear until the first cadence tick;
+        # wall time under 2s (every=0.4, expect the blank-line-terminated block by ~0.4-0.8s).
+        p = subprocess.Popen(
+            [sys.executable, str(HERE / "erp_node.py"), "--pack", str(PACK), "--every", "0.4"],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=HERE)
+        p.stdin.write(b"ERP\n")
+        p.stdin.flush()
+        started = time.monotonic()
+        result = {}
+
+        def reader():
+            got = b""
+            while b"\n\n" not in got:
+                b = p.stdout.read(1)
+                if not b:
+                    break
+                got += b
+            result["got"] = got
+            result["elapsed"] = time.monotonic() - started
+
+        t = threading.Thread(target=reader, daemon=True)
+        t.start()
+        t.join(timeout=1.8)
+        p.stdin.close()
+        p.kill()
+        p.wait()
+        self.assertIn(b"\n\n", result.get("got", b""), result)
+        self.assertGreaterEqual(result["elapsed"], 0.3, "reply appeared before the first tick")
+
+    def test_no_reply_queued_a_tick_writes_nothing(self):
+        out = run_node("--every", "0.2", stdin_text="")
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertEqual(out.stdout, b"")
+
+    def test_every_refused_with_decode_or_lxmf(self):
+        out = run_node("--every", "0.2", "--decode", stdin_text="")
+        self.assertNotEqual(out.returncode, 0)
+        self.assertIn(b"--every", out.stderr)
+
+
 class PlainModeRegression(unittest.TestCase):
     def test_content_flag_default_is_plain_and_unchanged(self):
         # Same expectation StdinTransport.test_round_trip already asserts; restated here next
