@@ -57,7 +57,7 @@ it wrote some, so a gap is a decision on record rather than a silent absence.
 
 **stdin/stdout, the universal adapter.** Any bridge, codec or radio can pipe into it.
 
-    python erp_node.py --pack pack
+    python3 erp_node.py --pack pack
 
 One command per line in. Out: the reply's chunks, each on its own line (a chunk that spans
 several lines keeps them), then one blank line. Replies never contain a blank line, so the
@@ -68,7 +68,7 @@ message by running its content through the same handler, one LXMF message per ch
 the sender.
 
     pip install rns lxmf
-    python erp_node.py --pack pack --lxmf [--config <reticulum config dir>]
+    python3 erp_node.py --pack pack --lxmf [--config <reticulum config dir>]
 
 The node's address is printed to stderr at start and is kept under Reticulum's storage
 directory, so it survives restarts. It re-announces every 30 minutes. A sender the node has
@@ -91,10 +91,10 @@ Measured here, on this pack, the reply sizes are:
 | Reply | Characters | Frames at 200 | Frames at 127 (sealed) | Air time at 0.16 s per byte |
 | --- | --- | --- | --- | --- |
 | `ERP` | 378 | 3 | 5 | about 60 s |
-| `ERP BASIC` | 1644 | 12 | 19 | about 4.4 min |
+| `ERP BASIC` | 1600 | 12 | 18 | about 4.3 min |
 | `ERP BUSH` | 277 | 2 | 3 | about 44 s |
 | `ERP BUSH 2` (the longest section) | 1117 | 8 | 13 | about 3 min |
-| `ERP LINES` | 2926 | 19 | 30 | about 7.8 min |
+| `ERP LINES` | 2913 | 19 | 30 | about 7.8 min |
 | one step | 107 to 423 | 1 to 3 | 2 to 4 | 17 s to 68 s |
 | unknown command | 167 | 1 | 3 | about 27 s |
 
@@ -104,8 +104,8 @@ envelope header when signing.
 
 ## Signing (optional, off by default)
 
-    python -m arrowenvelope keygen node.key
-    python erp_node.py --pack pack --sign node.key --max-chars 127
+    python3 -m arrowenvelope keygen node.key
+    python3 erp_node.py --pack pack --sign node.key --max-chars 127
 
 Each outgoing chunk, prefix included, is sealed with arrowenvelope (Ed25519 over a content
 hash, 73-byte header). A receiver holding the node's public key can reject anything not sent
@@ -126,7 +126,7 @@ translations and changed refusals happen in the pack repository, never here.
 
 ## Tests
 
-    python -m unittest -v
+    python3 -m unittest -v
 
 Every grammar branch, case and whitespace tolerance, out-of-range and unknown input, the
 content boundary above, chunk reassembly identity at several budgets, the stdin transport via
