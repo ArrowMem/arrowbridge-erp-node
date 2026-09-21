@@ -104,7 +104,7 @@ envelope header when signing.
 
 ## Signing (optional, off by default)
 
-    python3 -m arrowenvelope keygen node.key
+    PYTHONPATH=../arrowmem-envelope python3 -m arrowenvelope keygen node.key
     python3 erp_node.py --pack pack --sign node.key --max-chars 127
 
 Each outgoing chunk, prefix included, is sealed with arrowenvelope (Ed25519 over a content
