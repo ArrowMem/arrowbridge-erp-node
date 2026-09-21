@@ -1,5 +1,5 @@
 {
-  "_what_this_is": "THE BUSH TIER. A person lost on foot, or hurt and alone, in the backcountry. Sections are ordered stay-put first, on purpose: ERP_SURVIVAL_BRIEF.md section 4.1, 'a lost person who reads a search technique first will walk, and walking turns a short search into a long one.' Every item is VERIFIED unless marked otherwise. Items marked withheld are named, not silently missing - see safety/hard_lines.json for the full reasoning on each.",
+  "_what_this_is": "THE BUSH TIER. A person lost on foot, or hurt and alone, in the backcountry. Sections are ordered stay-put first, on purpose, per this pack's own planning notes: 'a lost person who reads a search technique first will walk, and walking turns a short search into a long one.' Every item is VERIFIED unless marked otherwise. Items marked withheld are named, not silently missing - see safety/hard_lines.json for the full reasoning on each.",
   "_zero_signal": "Every action below is static text with no field a model can rewrite and no field a reader's own situation can be typed into.",
   "version": 1,
   "product": "erp",

@@ -1,5 +1,5 @@
 {
-  "_note": "scenario/action id -> the source line shown as this pack's citation for that content. Same contract mvf_pack_safety.citation_for() reads for VAC: citations.get(id) or citations.get('_default') over the WHOLE parsed file, no wrapper key. structural_report()'s own probe only checks that '_default' resolves; every other key below is real content-to-source mapping, not filler.",
+  "_note": "scenario/action id -> the source line shown as this pack's citation for that content. Same contract this product's shared safety module reads for VAC: citations.get(id) or citations.get('_default') over the WHOLE parsed file, no wrapper key. structural_report()'s own probe only checks that '_default' resolves; every other key below is real content-to-source mapping, not filler.",
   "_default": "Each entry in this register names its own source in its own line. An entry marked VERIFIED was checked directly against that source. The working notes behind this register are not part of this pack.",
   "basic_stay_in_vehicle": "US National Weather Service winter storm guidance ('Stay in the vehicle!'); echoed by Public Safety Canada and a road safety regulator. VERIFIED, unanimous, unconditional.",
   "basic_clear_exhaust": "Public Safety Canada, a road safety regulator, and the US National Weather Service, four bodies total. VERIFIED.",

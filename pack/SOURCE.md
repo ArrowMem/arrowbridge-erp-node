@@ -2,7 +2,7 @@
 
 The files in this directory are the ArrowMem ERP (survival and emergency basics) content
 pack, `pack_id` `erp`, `generation` 1. They were copied byte-for-byte from the pack's own
-repository, commit `90bee97070ed2be333e9afe496c0f363feb085cb`:
+repository, commit `d9cb26407a74eeca8ac829583b01ee40dd572957`:
 
 - `citations.json`
 - `content/basic_vehicle.json`
