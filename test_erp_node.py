@@ -482,6 +482,31 @@ class PlainModeRegression(unittest.TestCase):
         self.assertEqual(out.stdout.decode("utf-8"), erp_node.reply(pack, "ERP BASIC 1") + "\n\n")
 
 
+class LxmfPeerMode(unittest.TestCase):
+    """record_holds and lxmf_mode are pure (no RNS/LXMF object), so this needs no rns/lxmf
+    install and no subprocess: the RED case (an announced peer still answered plain) is
+    exactly what a broken lxmf_mode would return here."""
+
+    def test_recorded_peer_gets_dict_regardless_of_content_flag(self):
+        held = {}
+        our_id = b"\x11" * 8
+        self.assertTrue(erp_node.record_holds(b"peerA", our_id, our_id, held))
+        self.assertEqual(erp_node.lxmf_mode(b"peerA", held, "plain"), "dict")
+        self.assertEqual(erp_node.lxmf_mode(b"peerA", held, "ref"), "dict")
+
+    def test_unrecorded_peer_gets_the_content_flag_value(self):
+        held = {}
+        self.assertEqual(erp_node.lxmf_mode(b"peerB", held, "plain"), "plain")
+        self.assertEqual(erp_node.lxmf_mode(b"peerB", held, "ref"), "ref")
+
+    def test_wrong_id_is_never_recorded(self):
+        held = {}
+        our_id, other_id = b"\x11" * 8, b"\x22" * 8
+        self.assertFalse(erp_node.record_holds(b"peerC", other_id, our_id, held))
+        self.assertEqual(held, {})
+        self.assertEqual(erp_node.lxmf_mode(b"peerC", held, "plain"), "plain")
+
+
 def free_port():
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
@@ -514,6 +539,38 @@ def lxmf_client(configdir, node_hash_hex, command):
     os._exit(0)
 
 
+def lxmf_client_holds(configdir, node_hash_hex, holds_hex, command):
+    """Third process: send a raw 0x05 HOLDS frame (hex on argv), then `command`, and print
+    the reply's RAW bytes (not content_as_string, which would corrupt a binary 0x04 reply).
+    Ordering the HOLDS frame before the command relies only on the client-side sleep below:
+    each inbound message on the node runs in its own daemon thread, so nothing on the node
+    side orders them."""
+    import LXMF
+    import RNS
+    RNS.Reticulum(configdir=configdir)
+    ident = RNS.Identity()
+    router = LXMF.LXMRouter(identity=ident, storagepath=configdir + "/client")
+    me = router.register_delivery_identity(ident, display_name="loopback client")
+    got = []
+    router.register_delivery_callback(lambda m: got.append(m.content))
+    router.announce(me.hash)
+    h = bytes.fromhex(node_hash_hex)
+    RNS.Transport.request_path(h)
+    deadline = time.time() + 60
+    while not RNS.Transport.has_path(h) and time.time() < deadline:
+        time.sleep(0.2)
+    dest = RNS.Destination(RNS.Identity.recall(h), RNS.Destination.OUT, RNS.Destination.SINGLE, "lxmf", "delivery")
+    router.handle_outbound(LXMF.LXMessage(dest, me, bytes.fromhex(holds_hex)))
+    time.sleep(1.0)  # let the HOLDS frame be recorded before the real command goes out
+    router.handle_outbound(LXMF.LXMessage(dest, me, command))
+    deadline = time.time() + 60
+    while not got and time.time() < deadline:
+        time.sleep(0.2)
+    sys.stdout.buffer.write(got[0] if got else b"")
+    sys.stdout.flush()
+    os._exit(0)
+
+
 try:
     import LXMF  # noqa: F401
     import RNS  # noqa: F401
@@ -524,31 +581,59 @@ except ImportError:  # pragma: no cover
 
 @unittest.skipUnless(HAVE_RNS, "rns and lxmf not installed")
 class LxmfLoopback(unittest.TestCase):
+    def _start_node(self, d, *extra_args):
+        (Path(d) / "config").write_text(
+            "[reticulum]\nenable_transport = No\nshare_instance = Yes\nshared_instance_type = tcp\n"
+            f"shared_instance_port = {free_port()}\ninstance_control_port = {free_port()}\n"
+            "[logging]\nloglevel = 3\n[interfaces]\n", encoding="utf-8")
+        node = subprocess.Popen(
+            [sys.executable, str(HERE / "erp_node.py"), "--pack", str(PACK), "--lxmf", "--config", d, *extra_args],
+            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, cwd=HERE, text=True)
+        addr = []
+        def read_addr():
+            for line in node.stderr:
+                if "LXMF address: " in line:
+                    addr.append(line.split("LXMF address: ")[1].strip())
+                    break
+        threading.Thread(target=read_addr, daemon=True).start()
+        for _ in range(300):
+            if addr or node.poll() is not None:
+                break
+            time.sleep(0.2)
+        self.assertTrue(addr, "node never printed its LXMF address")
+        self.assertEqual(len(addr[0]), 32)
+        return node, addr[0]
+
     def test_two_processes_one_shared_instance(self):
         with tempfile.TemporaryDirectory() as d:
-            (Path(d) / "config").write_text(
-                "[reticulum]\nenable_transport = No\nshare_instance = Yes\nshared_instance_type = tcp\n"
-                f"shared_instance_port = {free_port()}\ninstance_control_port = {free_port()}\n"
-                "[logging]\nloglevel = 3\n[interfaces]\n", encoding="utf-8")
-            node = subprocess.Popen([sys.executable, str(HERE / "erp_node.py"), "--pack", str(PACK), "--lxmf", "--config", d],
-                                    stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, cwd=HERE, text=True)
+            node, addr = self._start_node(d)
             try:
-                addr = []
-                def read_addr():
-                    for line in node.stderr:
-                        if "LXMF address: " in line:
-                            addr.append(line.split("LXMF address: ")[1].strip())
-                            break
-                threading.Thread(target=read_addr, daemon=True).start()
-                for _ in range(300):
-                    if addr or node.poll() is not None:
-                        break
-                    time.sleep(0.2)
-                self.assertTrue(addr, "node never printed its LXMF address")
-                self.assertEqual(len(addr[0]), 32)
-                client = subprocess.run([sys.executable, __file__, "client", d, addr[0], "ERP BASIC 1"],
+                client = subprocess.run([sys.executable, __file__, "client", d, addr, "ERP BASIC 1"],
                                         capture_output=True, timeout=150, cwd=HERE)
                 self.assertEqual(client.stdout.decode("utf-8"), erp_node.reply(pack, "ERP BASIC 1"), client.stderr[-2000:])
+            finally:
+                node.kill()
+                node.wait()
+
+    @unittest.skipUnless(ac, "arrowcontent not importable (sibling checkout or PYTHONPATH)")
+    def test_holds_frame_then_dict_reply(self):
+        # RED case this proves fixed: on de8990c an announced peer was still answered plain
+        # (serve_lxmf never read a 0x05 at all). Node started with no --content flag (default
+        # plain), so a dict-mode reply here can only come from the peer's own 0x05 HOLDS.
+        dictionary = build_dict.build_dictionary(PACK)
+        did = ac.content_id(dictionary)
+        holds_hex = (b"\x05" + did).hex()
+        self.assertEqual(holds_hex, "055ffbd490ada4f969")
+        with tempfile.TemporaryDirectory() as d:
+            node, addr = self._start_node(d)
+            try:
+                client = subprocess.run(
+                    [sys.executable, __file__, "clientholds", d, addr, holds_hex, "ERP BASIC 1"],
+                    capture_output=True, timeout=150, cwd=HERE)
+                reply_bytes = client.stdout
+                self.assertEqual(reply_bytes[:1], b"\x04", client.stderr[-2000:])
+                decoded = ac.decode_compressed(reply_bytes, {did: dictionary})
+                self.assertEqual(decoded.decode("utf-8"), erp_node.reply(pack, "ERP BASIC 1"))
             finally:
                 node.kill()
                 node.wait()
@@ -557,4 +642,6 @@ class LxmfLoopback(unittest.TestCase):
 if __name__ == "__main__":
     if sys.argv[1:2] == ["client"]:
         lxmf_client(*sys.argv[2:5])
+    elif sys.argv[1:2] == ["clientholds"]:
+        lxmf_client_holds(*sys.argv[2:6])
     unittest.main()

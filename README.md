@@ -75,6 +75,11 @@ directory, so it survives restarts. It re-announces every 30 minutes. A sender t
 never heard announce gets a path request and up to two minutes of patience before the reply is
 dropped with a log line.
 
+**`--lxmf` now always loads the content machinery** (the sibling `arrowmem-envelope` checkout
+and a built `pack.dict`), for the 0x05 HOLDS protocol below, regardless of `--content`. This is
+a new startup dependency `--lxmf` did not have before: plain-only LXMF use now needs the same
+sibling checkout `--content ref`/`--content dict` always needed.
+
 ## Chunking and the radio budget
 
 `--max-chars N` (default 0, no chunking) splits a reply into parts of at most N characters
@@ -114,11 +119,25 @@ modes need `pip install cryptography` for nothing extra; they only need the sibl
 `arrowmem-envelope` checkout (or `PYTHONPATH`), same as `--sign`.
 
 **Fallback rule: plain is the default and stays the default for any peer that has not said it
-holds the pack.** SPEC-CONTENT.md's 0x05 HOLDS advertise-before-compress frame and full
-peer-tracking are not wired here; `--content ref`/`--content dict` are explicit opt-in flags a
+holds the pack.** For stdin/stdout, `--content ref`/`--content dict` are explicit opt-in flags a
 node operator sets only when the peer is known to run the identical pack (this node's own case
 today, per SPEC-CONTENT.md's own reading: "the request already is the reference case"). A peer
 that does not speak these frames simply never gets one, because plain stays the default.
+
+**`--lxmf` wires the 0x05 HOLDS advertise-before-compress frame.** Send the node this 9-byte
+frame, hex `055ffbd490ada4f969` (our pinned dictionary id, `0x05` prefix), from any LXMF
+message and the node records your source hash in memory; every later reply to you is then
+`dict` mode (one or more 0x04 frames), regardless of the `--content` flag the node was
+started with. A HOLDS frame gets no reply of its own, ack or otherwise. Anyone who has not
+sent one keeps getting whatever `--content` says (plain by default), exactly as before. This
+is unauthenticated: `--sign` seals only this node's outbound chunks, it never opens an
+inbound envelope, so a bare 0x05 is accepted on its face whether or not `--sign` is on. A
+forged announce changes only the encoding a peer is answered in, never the content: at worst
+it makes a peer receive 0x04 frames it cannot decode (its own decoder reports `unknown
+dictionary`, or the bytes are simply unparseable if it runs no arrowcontent decoder at all).
+There is no un-announce frame; a mis-recorded peer clears only on node restart (in-memory
+table, not persisted). The node never sends its own 0x05: it is the content server, never a
+content requester, so it never needs to announce.
 
 **Who has to hold what.** `ref` mode: both ends need byte-identical `pack/` content (same
 `pack/SOURCE.md` commit) and each builds its own index from it; a reply this node can emit but
@@ -130,7 +149,9 @@ gets `unknown dictionary`.
     python3 erp_node.py --pack pack --content dict --max-chars 127
     python3 erp_node.py --pack pack --decode
 
-stdin/stdout only (not wired to `--lxmf` in this change). Each line out is one content frame,
+`ref`/`dict` here (the explicit `--content` flag) are stdin/stdout only; see above for how
+`--lxmf` uses the 0x05 HOLDS frame instead of this flag to decide dict mode per peer. Each
+line of stdin/stdout output is one content frame,
 hex-encoded (always, signed or not, since a frame is binary); `--sign` seals the frame itself,
 so the content frame becomes the envelope payload. `--decode` reads hex frames back and prints
 either the decoded text or one of SPEC-CONTENT.md's named errors (`not a compressed frame`,
@@ -237,9 +258,12 @@ translations and changed refusals happen in the pack repository, never here.
 Every grammar branch, case and whitespace tolerance, out-of-range and unknown input, the
 content boundary above, chunk reassembly identity at several budgets, the stdin transport via
 subprocess, signing when arrowenvelope is importable, an LXMF loopback between two processes
-on one shared Reticulum instance when `rns` and `lxmf` are installed, the `pack.dict` id and
-that it matches a fresh build, and (when arrowcontent is importable) `ref`/`dict` round trips
-over every grammar reply plus every named decoder error.
+on one shared Reticulum instance when `rns` and `lxmf` are installed (plus a second loopback,
+also gated on arrowcontent being importable, that sends a 0x05 HOLDS frame first and asserts
+the next reply is a 0x04 dictionary-compressed frame decoding back to the exact text), the
+per-peer mode choice (`record_holds`/`lxmf_mode`) unit-tested with no Reticulum instance at
+all, the `pack.dict` id and that it matches a fresh build, and (when arrowcontent is
+importable) `ref`/`dict` round trips over every grammar reply plus every named decoder error.
 
 ## Licence
 

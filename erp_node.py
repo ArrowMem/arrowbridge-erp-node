@@ -306,9 +306,48 @@ def serve_stdin(pack, max_chars, seal, content_mode="plain", ac=None, dictionary
         sys.stdout.flush()
 
 
-def serve_lxmf(pack, max_chars, seal, configdir):
+def record_holds(peer_hash, peer_id, our_id, held_peers):
+    """Pure, no RNS: mutates held_peers (peer hash -> announced id) in place if peer_id is
+    our dictionary id. Returns True if recorded. A mis-announced id is never recorded; the
+    caller logs it and the peer keeps getting plain text, same as before it ever announced."""
+    if peer_id == our_id:
+        held_peers[peer_hash] = peer_id
+        return True
+    return False
+
+
+def lxmf_mode(peer_hash, held_peers, content_mode):
+    """Per-peer content mode for one LXMF reply: dict for any peer whose 0x05 HOLDS for our
+    dictionary id was recorded, else the --content flag value (plain by default). No RNS
+    object touched, so this is unit-testable with a plain dict standing in for held_peers."""
+    return "dict" if peer_hash in held_peers else content_mode
+
+
+def serve_lxmf(pack, max_chars, seal, configdir, content_mode="plain", ac=None, dictionary=None):
     """Announce an LXMF destination "ArrowMem ERP"; answer every inbound message's content
-    through reply(), one LXMF message per chunk, back to the sender."""
+    through reply(), one LXMF message per chunk, back to the sender.
+
+    Advertise-before-compress (SPEC-CONTENT.md 0x05): a peer whose message content is
+    exactly a 0x05 HOLDS frame naming our dictionary id is recorded (in memory only,
+    ponytail: not persisted, a restart forgets peers and they simply re-announce) and gets
+    no reply at all, ack or otherwise -- the frame is an announcement, not a question. Every
+    later reply to that peer is dict-mode (one or more 0x04 frames from content_frames(),
+    the same function stdin's --content dict path uses). A HOLDS naming an id that is not
+    ours is logged at RNS.LOG_NOTICE and changes nothing: that peer keeps getting whatever
+    content_mode already gives it. There is no un-announce frame in this spec (YAGNI: the
+    only way a wrongly-recorded peer recovers today is a node restart, which is an accepted
+    cost of not persisting the table). This node never sends its own 0x05: it is the content
+    server, never the content requester, so it has no reason to announce to a peer.
+
+    A bare 0x05 is accepted on its face whether or not --sign is on: serve_lxmf never opens
+    an inbound envelope (msg.content is read directly), so --sign only authenticates this
+    node's OUTBOUND chunks, never a peer's inbound ones. An announce is unauthenticated
+    either way and changes only the ENCODING a peer is answered in, never the content: a
+    forged 0x05 can at worst make dict.py answer a peer with 0x04 frames it cannot decode
+    (it gets `unknown dictionary` from its own decoder, or unparseable binary if it runs no
+    arrowcontent decoder at all), never wrong content and never plaintext exposure of
+    anything the peer did not already ask for.
+    """
     import LXMF
     import RNS
     RNS.Reticulum(configdir=configdir)
@@ -320,8 +359,21 @@ def serve_lxmf(pack, max_chars, seal, configdir):
         identity.to_file(str(idfile))
     router = LXMF.LXMRouter(identity=identity, storagepath=str(store))
     me = router.register_delivery_identity(identity, display_name="ArrowMem ERP")
+    held_peers = {}  # source hash -> the dictionary id that peer announced holding
 
     def answer(msg):
+        if ac and dictionary:
+            try:
+                peer_id = ac.parse_holds(msg.content)
+            except ac.ContentError:
+                peer_id = None
+            if peer_id is not None:
+                # Checked before any dest/path lookup: a HOLDS frame is answered with
+                # nothing, so it must never trigger a path request either.
+                if not record_holds(msg.source_hash, peer_id, ac.content_id(dictionary), held_peers):
+                    RNS.log(f"ERP: 0x05 HOLDS for unknown id {peer_id.hex()} from "
+                            + RNS.prettyhexrep(msg.source_hash), RNS.LOG_NOTICE)
+                return
         dest = msg.source  # set by LXMF when the sender has announced; else ask the network
         if dest is None:
             RNS.Transport.request_path(msg.source_hash)
@@ -332,8 +384,14 @@ def serve_lxmf(pack, max_chars, seal, configdir):
                     break
             else:
                 return RNS.log("ERP: no path back to " + RNS.prettyhexrep(msg.source_hash), RNS.LOG_WARNING)
-        for part in chunk(reply(pack, msg.content_as_string() or ""), max_chars):
-            router.handle_outbound(LXMF.LXMessage(dest, me, seal(part.encode("utf-8")) if seal else part))
+        mode = lxmf_mode(msg.source_hash, held_peers, content_mode)
+        text = reply(pack, msg.content_as_string() or "")
+        if mode == "plain":
+            for part in chunk(text, max_chars):
+                router.handle_outbound(LXMF.LXMessage(dest, me, seal(part.encode("utf-8")) if seal else part))
+        else:  # same content_frames() the stdin --content path uses; not forked here
+            for frame in content_frames(ac, dictionary, mode, text, max_chars):
+                router.handle_outbound(LXMF.LXMessage(dest, me, seal(frame) if seal else frame))
 
     router.register_delivery_callback(lambda m: threading.Thread(target=answer, args=(m,), daemon=True).start())
     print("ArrowMem ERP LXMF address: " + RNS.hexrep(me.hash, delimit=False), file=sys.stderr, flush=True)
@@ -350,8 +408,11 @@ def main(argv=None):
     p.add_argument("--lxmf", action="store_true", help="serve over LXMF instead of stdin/stdout")
     p.add_argument("--config", help="Reticulum config directory for --lxmf (default: Reticulum's own)")
     p.add_argument("--content", choices=["plain", "ref", "dict"], default="plain",
-                    help="stdin/stdout only: plain (default; the fallback rule), ref (0x03 "
-                         "content reference), dict (0x04 dictionary-compressed)")
+                    help="stdin/stdout: plain (default; the fallback rule), ref (0x03 content "
+                         "reference), dict (0x04 dictionary-compressed). --lxmf: the default "
+                         "mode for a peer that has not sent a 0x05 HOLDS frame for our "
+                         "dictionary id; a peer that has is always answered dict, regardless "
+                         "of this flag")
     p.add_argument("--decode", action="store_true",
                     help="read hex content frames from stdin, print decoded text or named errors")
     p.add_argument("--pad", type=int, default=0,
@@ -367,16 +428,19 @@ def main(argv=None):
     if a.pad and a.pad < a.max_chars:
         p.error("--pad must be >= --max-chars")
     if a.every and (a.lxmf or a.decode):
-        p.error("--every is stdin/stdout mode only, like --content")
+        p.error("--every is stdin/stdout mode only")
     pack, seal = load_pack(a.pack), sealer(a.sign) if a.sign else None
     ac = dictionary = index = None
-    if a.content != "plain" or a.decode:
+    # --lxmf always loads the content machinery (needed for the 0x05 HOLDS peer-tracking
+    # protocol regardless of --content), a new startup dependency --lxmf did not have before:
+    # it now needs the sibling arrowmem-envelope checkout the same way --content ref/dict does.
+    if a.content != "plain" or a.decode or a.lxmf:
         ac, dictionary = load_content(a.pack)
+    if a.decode:  # index is only ever read by decode_stdin
         index = content_index(ac, pack)
-    if a.decode:
         decode_stdin(ac, dictionary, index)
     elif a.lxmf:
-        serve_lxmf(pack, a.max_chars, seal, a.config)
+        serve_lxmf(pack, a.max_chars, seal, a.config, a.content, ac, dictionary)
     else:
         serve_stdin(pack, a.max_chars, seal, a.content, ac, dictionary, a.pad, a.every)
 
