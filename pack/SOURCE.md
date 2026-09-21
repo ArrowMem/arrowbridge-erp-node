@@ -17,8 +17,17 @@ one-line constant in `erp_node.py` (`CONTENT_FILES`).
 **These files must never be edited in this repository.** The node reads them; it does not own
 them. A fix, a new step, a French pass, a changed refusal: all of that happens in the pack's
 repository and arrives here as a new byte-identical copy, with the commit hash above updated.
-One of the files carries CRLF line endings and three carry LF; `.gitattributes` tells git to
-leave both alone so the copies stay identical to their source.
+
+**Re-vendoring must read the git blob, never a working tree.** All four files are pure LF at
+the source. Copy them with `git -C <pack repo checkout> show <commit>:<path>` and write the
+bytes straight to disk; do not `cp` or drag-and-drop a working-tree copy, especially not from
+a Windows checkout of the pack repository, which has no `.gitattributes` of its own and will
+silently convert every LF to CRLF on checkout under `core.autocrlf=true`. That exact mistake
+shipped once (`content/basic_vehicle.json`, fixed 2026-09-20) and is why this warning is here.
+This repository's own `.gitattributes` sets `-text` on `pack/**` so a correct copy, once
+committed, can never be re-normalised by a later checkout on any platform - but it cannot fix
+a bad copy that was never byte-exact to begin with, which only re-vendoring from the blob can
+do.
 
 Every safety string the node emits is one of the strings in these files, verbatim.
 `test_erp_node.py` asserts that for every command the node accepts.
