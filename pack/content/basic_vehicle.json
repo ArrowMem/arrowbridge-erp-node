@@ -59,7 +59,7 @@
     },
     {
       "id": "basic_snow_shelter_comparison_withheld",
-      "text_en": "This pack does not compare building a snow shelter against staying in the vehicle beyond telling you to stay in the vehicle (action 1). A search and rescue partner has not confirmed the comparison, per plan/PIVOT/ERP_PARTNER_QUESTIONS.md D2, so this pack does not go further than the one instruction it can source unconditionally."
+      "text_en": "This pack does not compare building a snow shelter against staying in the vehicle beyond telling you to stay in the vehicle (action 1). A search and rescue partner has not confirmed the comparison, so this pack does not go further than the one instruction it can source unconditionally."
     }
   ]
 }

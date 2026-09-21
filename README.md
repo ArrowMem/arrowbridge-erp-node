@@ -1,9 +1,10 @@
 # arrowbridge-erp-node
 
 A survival-content node for radio and mesh networks. It answers a closed set of commands with
-the exact text of the ArrowMem ERP pack: what to do when stranded in a vehicle, and what to do
-when lost on foot, every line traced to a published source. It runs on Reticulum (LXMF) or
-behind any transport at all through stdin/stdout, with no model, no internet, and no signal.
+the exact text of the ArrowMem emergency response pack: what to do when stranded in a vehicle,
+and what to do when lost on foot, every line traced to a published source. It runs on Reticulum
+(LXMF) or behind any transport at all through stdin/stdout, with no model, no internet, and no
+signal.
 
 Built for the community that bridged Reticulum over amateur HF
 (github.com/buildwithparallel/crosstalk): their frames are plaintext and slow, so every reply
@@ -24,6 +25,11 @@ here is plaintext-safe and can be chunked to a frame budget.
   is the zero-signal half only.
 
 ## Commands
+
+`ERP` is the command word, short for emergency response. `BASIC` is the stranded-in-a-vehicle
+tier and `BUSH` is the lost-on-foot tier. Type all three exactly as they appear below: they are
+literal commands sent over a radio link, not words the node interprets, so they are never
+translated and never spelled any other way.
 
 Case-insensitive, whitespace tolerant, nothing else parsed.
 
@@ -133,8 +139,10 @@ The code in this repository is MIT, ArrowMem Inc. 2026; see `LICENSE`.
 
 ### Content licence
 
-The pack content under `pack/` is licensed separately, and that licence is not yet confirmed
-by ArrowMem for publication. See `pack/SOURCE.md` for the current status.
+The pack content (`pack/content/`, `pack/safety/`, `pack/citations.json`) is licensed
+separately from the code, under CC BY 4.0; see `pack/LICENSE-CONTENT`. `pack/NOTICE.md` names
+every source body this content draws on and states that none of them endorses or is
+affiliated with this pack or with ArrowMem.
 
 ## About
 

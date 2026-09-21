@@ -43,7 +43,8 @@ RAW = b"".join((PACK / f).read_bytes() for f in PACK_FILES)
 ALL = [lf for f in PACK_FILES for lf in leaves(json.loads((PACK / f).read_text(encoding="utf-8")))]
 CONTENT = {s for s, meta in ALL if not meta}
 META = {s for s, meta in ALL if meta} - CONTENT
-MANIFEST_ONLY = {s for s, _ in leaves(json.loads((PACK / "manifest.json").read_text(encoding="utf-8")))} - CONTENT
+# manifest.json is not vendored here on purpose (pack/SOURCE.md): it carries the pack's legacy
+# product name and support address, so there is no vendored copy left to leak from at all.
 
 # Everything the node may say that is not a pack string. A new authored line must be added here.
 NAV_EXACT = {
@@ -149,12 +150,12 @@ class ContentBoundary(unittest.TestCase):
         for x in pack["lines"]:
             self.assertIn(x["text_en"], seen)
 
-    def test_never_emits_metadata_or_manifest_strings(self):
+    def test_never_emits_metadata_strings(self):
         for cmd in EVERY_COMMAND + ["nonsense"]:
             out = erp_node.reply(pack, cmd)
-            for s in META | MANIFEST_ONLY:  # "en" and "erp" are manifest values too, hence the length gate
+            for s in META:
                 self.assertNotIn(s, out.splitlines(), cmd)
-                if len(s) >= 20:  # covers the manifest's legacy product name and support address
+                if len(s) >= 20:  # a short metadata value could coincide with real content
                     self.assertNotIn(s, out, cmd)
             self.assertNotIn("note_en", out)
             for a in BASIC["actions"]:

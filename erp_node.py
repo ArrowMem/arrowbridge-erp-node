@@ -19,14 +19,18 @@ UNKNOWN = "Unknown command. Send ERP for the menu."
 FLOOR_ID = "no_trauma_or_first_aid_content"
 
 
+# pack/manifest.json is not vendored here (it carries brand and internal-path bytes that never
+# ship publicly); these two paths are its only fields this node ever read. See pack/SOURCE.md.
+CONTENT_FILES = {"basic": "content/basic_vehicle.json", "bush": "content/bush_lost.json"}
+
+
 def load_pack(pack_dir):
     root = Path(pack_dir)
     read = lambda rel: json.loads((root / rel).read_text(encoding="utf-8"))
-    manifest = read("manifest.json")
     lines = read("safety/hard_lines.json")["refusals"]
     return {
-        "basic": read(manifest["content"]["basic"]),
-        "bush": read(manifest["content"]["bush"]),
+        "basic": read(CONTENT_FILES["basic"]),
+        "bush": read(CONTENT_FILES["bush"]),
         "lines": lines,
         "floor": next(r["text_en"] for r in lines if r["id"] == FLOOR_ID),
         "src": {k: v for k, v in read("citations.json").items() if not k.startswith("_")},

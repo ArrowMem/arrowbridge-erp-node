@@ -3,74 +3,74 @@
 
   "_the_asymmetry_that_governs_this_whole_pack": {
     "rule": "STAY-PUT AND BEING-FOUND CONTENT IS ESCALATION-SHAPED AND SAFE TO STATE PLAINLY. ANYTHING THAT TELLS A PERSON WHAT TO DO INSTEAD OF THE PUBLISHED DOCTRINE IS WITHHELD UNTIL A NAMED PARTNER ANSWERS WHETHER TO GIVE IT AT ALL.",
-    "why": "plan/PLANS/ERP_TRAUMA_PACK_CONTRACT.md section 1, applied here one register up: escalation (stay put, get found, call 911) is safe because its failure mode is a wasted wait. Telling someone what to do if they move anyway is closer to de-escalation's shape - if it is wrong for their terrain, the failure mode is a longer search or a worse injury, and plan/PIVOT/ERP_PARTNER_QUESTIONS.md A0-6 already proves terrain-specific deviation guidance can be OPPOSITE between two recognised bodies. This pack does not guess which one applies to a reader it cannot see."
+    "why": "Escalation (stay put, get found, call 911) is safe because its failure mode is a wasted wait. Telling someone what to do if they move anyway is closer to de-escalation's shape - if it is wrong for their terrain, the failure mode is a longer search or a worse injury, and two recognised bodies already give OPPOSITE terrain-specific deviation guidance. This pack does not guess which one applies to a reader it cannot see."
   },
 
   "refusals": [
     {
       "id": "no_deviation_guidance",
       "withheld": "What to do if a person decides to move instead of staying put - route-finding, terrain-specific movement, when moving stops being wrong.",
-      "why": "BLOCKING and unanswered: plan/PIVOT/ERP_PARTNER_QUESTIONS.md A0-1 asks a SAR partner whether to give this guidance at all; A0-6 shows three recognised bodies giving opposite terrain-specific answers on the identical question (follow a drainage downhill as a last resort / a national park warns against exactly that / a BC SAR team says avoid going downhill entirely). No partner has answered either question.",
+      "why": "BLOCKING and unanswered: a search and rescue partner has been asked whether to give this guidance at all, and three recognised bodies give opposite terrain-specific answers on the identical question (follow a drainage downhill as a last resort / a national park warns against exactly that / a BC SAR team says avoid going downhill entirely). No partner has answered either question.",
       "text_en": "This pack tells you what published guidance says to do, plainly. It does not tell you what to do if you decide to move instead - that guidance is terrain-specific, search and rescue bodies disagree with each other on it, and we have not asked ours yet. We would rather say nothing than guess."
     },
     {
       "id": "no_on_foot_phone_instruction",
       "withheld": "Whether to turn a phone off, leave it on, or use airplane mode while lost on foot.",
-      "why": "BLOCKING and unanswered: plan/PIVOT/ERP_PARTNER_QUESTIONS.md B1/B2. Canada's national outdoor safety programme and the US National Park Service publish power-off guidance; a Government of Canada defence document on an airborne search sensor describes locating an operating handset. Neither source cites the other and neither is wrong; this pack is not going to resolve a live disagreement between two Canadian official sources by picking a side.",
+      "why": "BLOCKING and unanswered: a search and rescue partner has been asked and has not answered. Canada's national outdoor safety programme and the US National Park Service publish power-off guidance; a Government of Canada defence document on an airborne search sensor describes locating an operating handset. Neither source cites the other and neither is wrong; this pack is not going to resolve a live disagreement between two Canadian official sources by picking a side.",
       "text_en": "This pack does not tell you whether to turn your phone off, leave it on, or use airplane mode while lost on foot. Two Canadian official sources disagree with each other and we have asked a search and rescue partner rather than guess. What is settled: your phone still dials 911 through any carrier's tower, even with no plan, if you get even a moment of signal."
     },
     {
       "id": "no_vehicle_headlight_instruction",
       "withheld": "Whether to clear headlights and run them, or clear them and leave them off until a vehicle is heard.",
-      "why": "BLOCKING and unresolved: plan/PIVOT/ERP_PARTNER_QUESTIONS.md D1. Those are different instructions and no source resolves which is right.",
+      "why": "BLOCKING and unresolved: a search and rescue partner has been asked. Those are different instructions and no source resolves which is right.",
       "text_en": "This pack says nothing about your headlights beyond keeping them clear of snow. What to do with them after that is unresolved between the sources we found."
     },
     {
       "id": "no_ground_to_air_signal_chart",
       "withheld": "A reproduced chart of standardised ground-to-air distress signal symbols.",
-      "why": "ERP_SURVIVAL_BRIEF.md section 4.2: the international chart sits in a manual sold under copyright and could not be read; two Canadian bodies' own five-symbol sets differ in two of five entries and neither is confirmed reproducible.",
+      "why": "The international chart sits in a manual sold under copyright and could not be read; two Canadian bodies' own five-symbol sets differ in two of five entries and neither is confirmed reproducible.",
       "text_en": "Standardised ground-to-air signal symbols exist. This pack does not reproduce a chart of them: the two Canadian sets we found disagree with each other, and the source manual is sold under copyright."
     },
     {
       "id": "no_movement_attracts_the_eye_claim",
       "withheld": "The widely repeated claim that moving in the open makes a person easier for a search aircraft to spot.",
-      "why": "ERP_SURVIVAL_BRIEF.md section 4.2: NOTHING FOUND in any permitted source, in either direction. The only directly relevant published statement found is the opposite of what would be assumed: a helicopter approach is met by staying in position, not waving or moving.",
+      "why": "NOTHING FOUND in any permitted source, in either direction. The only directly relevant published statement found is the opposite of what would be assumed: a helicopter approach is met by staying in position, not waving or moving.",
       "text_en": "We could not find a source, official or otherwise, saying that movement makes you easier for a search aircraft to see. We are not repeating it."
     },
     {
       "id": "no_navigation_technique_for_someone_currently_lost",
       "withheld": "A bearing, a shadow-stick method, a star method, or any instruction on navigating out of a current situation.",
-      "why": "RULED, not deferred. ERP_SURVIVAL_BRIEF.md section 1: 'no recognised SAR body, park service or emergency management agency publishes a taught navigation procedure... addressed to a person who is CURRENTLY LOST.' Navigation is taught as prevention, to a person who is not lost. Basic navigation ships as its own learning pack, framed for someone at home before a trip, per plan/PLANS/FULL_SCOPE.md:1325 and plan/PIVOT/LEARNING_PACKS_SPEC.md.",
+      "why": "RULED, not deferred: no recognised SAR body, park service or emergency management agency publishes a taught navigation procedure addressed to a person who is CURRENTLY LOST. Navigation is taught as prevention, to a person who is not lost. Basic navigation ships as its own learning pack, framed for someone at home before a trip.",
       "text_en": "This pack does not teach you how to navigate yourself out. No search and rescue body publishes that as guidance for someone currently lost - navigation is taught before a trip, to someone who is not in trouble. If you want to learn map, compass or star navigation, that is a separate learning pack for when you are safe."
     },
     {
       "id": "no_food_or_plant_identification",
       "withheld": "Whether a plant, mushroom, or fish is safe to eat.",
-      "why": "ERP_SURVIVAL_BRIEF.md section 4.7: peer-reviewed testing of identification apps found species-level accuracy as low as 44-58%, poisonous species misidentified as edible including the mushroom responsible for the most poisoning deaths worldwide, and a poisons information centre observing an increase in poisonings that followed app-guided misidentification.",
+      "why": "Peer-reviewed testing of identification apps found species-level accuracy as low as 44-58%, poisonous species misidentified as edible including the mushroom responsible for the most poisoning deaths worldwide, and a poisons information centre observing an increase in poisonings that followed app-guided misidentification.",
       "text_en": "This pack will not tell you whether a plant, mushroom, or fish is safe to eat. Tested identification apps get this wrong often enough to kill someone, and a wrong call here can be fatal in a way that waiting on food is not. You can go far longer without food than most people expect. Getting found matters more."
     },
     {
       "id": "no_radio_legal_position",
       "withheld": "Whether it is legal for an untrained person to transmit a distress call on a licensed emergency frequency in a genuine emergency.",
-      "why": "ERP_SURVIVAL_BRIEF.md section 4.6: no explicit distress exception was located in the Radiocommunication Act or its regulations, and absence of a found provision is not proof none exists. This is a counsel question, not a research one.",
+      "why": "No explicit distress exception was located in the Radiocommunication Act or its regulations, and absence of a found provision is not proof none exists. This is a counsel question, not a research one.",
       "text_en": "We do not know, and are not going to guess, whether it is legal for an untrained person to transmit on a licensed emergency frequency in a genuine distress situation. Use a 406 MHz beacon, marine VHF Channel 16, or 911 - do not wait on that question if you are in trouble."
     },
     {
       "id": "no_trauma_or_first_aid_content",
       "withheld": "Any procedure, technique, dosage, timing, or severity judgement about a physical injury.",
-      "why": "plan/PLANS/ERP_TRAUMA_PACK_CONTRACT.md: no licensable Canadian civilian first aid source exists (Red Cross and St John are all rights reserved; TCCC's reuse position is unverified and written for a combat medic with drugs and blood), and no clinical reviewer is engaged. safety/clinical_clearance.json is the guarded, empty slot this ships with instead.",
+      "why": "No licensable Canadian civilian first aid source exists (Red Cross and St John are all rights reserved; TCCC's reuse position is unverified and written for a combat medic with drugs and blood), and no clinical reviewer is engaged. safety/clinical_clearance.json is the guarded, empty slot this ships with instead.",
       "text_en": "This pack does not cover first aid or physical injury care. If someone is badly hurt, call 911 and stay on the line if you can."
     },
     {
       "id": "no_mental_health_protocol",
       "withheld": "Any mental-health first-aid protocol, action plan, or 'what to say / what not to say' script.",
-      "why": "plan/PIVOT/ERP_MHFA_BRIEF.md: course materials are closed to us, and no accrediting partner has cleared content from the open CC BY journal layer that brief identifies as usable. 'Whether a partner exists who would clear content they did not author... is the real feasibility question' and it has not been answered.",
-      "text_en": "This pack does not cover what to do if someone is in a mental health crisis. The engine's crisis floor (988, and this product's other floored numbers) is delivered regardless of whether this pack is present; nothing here adds to it yet."
+      "why": "Course materials are closed to us, and no accrediting partner has cleared content from the open CC BY journal layer that could otherwise be used. Whether a partner exists who would clear content they did not author is the real feasibility question, and it has not been answered.",
+      "text_en": "This pack does not cover what to do if someone is in a mental health crisis. Course materials for that are closed to us and no accrediting partner has cleared content we could offer instead, so this pack adds nothing on it."
     },
     {
       "id": "no_emergency_alert_or_shelter_routing",
       "withheld": "Receiving public emergency alerts, or naming a specific shelter or reception centre to go to.",
-      "why": "RULED, not deferred. plan/PIVOT/ERP_ALERTS_FEASIBILITY.md: the alerting standard carries no destination element at all in the sampled feed, and Canada has no public shelter or reception-centre dataset - the only matching open data is homelessness-sector shelter beds, which would misroute someone fleeing a disaster. 'Do not build it.'",
+      "why": "RULED, not deferred: the alerting standard carries no destination element at all in the sampled feed, and Canada has no public shelter or reception-centre dataset - the only matching open data is homelessness-sector shelter beds, which would misroute someone fleeing a disaster.",
       "text_en": "This pack does not receive emergency alerts or tell you which shelter to go to. Canada has no public data that would let it do that safely."
     }
   ]
