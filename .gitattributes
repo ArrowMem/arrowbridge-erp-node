@@ -2,3 +2,6 @@
 # Git must never normalise it on checkout or commit, on any platform, so the working tree
 # always matches the source git blob exactly.
 pack/** -text
+# pack.dict is build_dict.py's own deterministic output over pack/, also binary, also never
+# to be normalised.
+pack.dict -text

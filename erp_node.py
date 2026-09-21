@@ -88,6 +88,26 @@ def reply(pack, command):
     return UNKNOWN + "\n" + pack["floor"]
 
 
+def grammar_commands(pack):
+    """Every command the closed grammar accepts that returns pack content (39 for the shipped
+    pack): ERP, ERP BASIC, ERP BUSH, ERP LINES, ERP BASIC 1..N, ERP BUSH 1..M, ERP BUSH n.m.
+    Matches SPEC-CONTENT.md's own count of the pack's closed grammar. ERP SRC replies are not
+    included: the spec's 39-reply count and dictionary-ordering measurement were both built
+    without them (assumption, noted in the build report)."""
+    basic, bush = pack["basic"], pack["bush"]
+    cmds = ["ERP", "ERP BASIC", "ERP BUSH", "ERP LINES"]
+    cmds += [f"ERP BASIC {i}" for i in range(1, len(basic["actions"]) + 1)]
+    for i, s in enumerate(bush["sections"], 1):
+        cmds.append(f"ERP BUSH {i}")
+        cmds += [f"ERP BUSH {i}.{j}" for j in range(1, len(s["actions"]) + 1)]
+    return cmds
+
+
+def grammar_replies(pack):
+    """command -> reply text, for every command grammar_commands() names."""
+    return {cmd: reply(pack, cmd) for cmd in grammar_commands(pack)}
+
+
 def chunk(text, max_chars):
     """Parts of text, each at most max_chars including its "[k/K] " prefix, so that the parts
     minus prefixes concatenate back to text exactly. A cut lands after the last newline that
@@ -113,23 +133,91 @@ def chunk(text, max_chars):
 
 
 def sealer(keyfile):
-    """--sign: each outgoing chunk becomes an arrowenvelope (Ed25519 over the chunk)."""
+    """--sign: each outgoing chunk (or content frame) becomes an arrowenvelope (Ed25519 over
+    its bytes). Callers pass bytes; a plain-text chunk is encoded utf-8 first, a content frame
+    is already bytes."""
     # ponytail: sibling checkout lookup until arrowenvelope is on PyPI; PYTHONPATH also works.
     sys.path.append(str(Path(__file__).resolve().parent.parent / "arrowmem-envelope"))
     import arrowenvelope as ae
     key = ae.load_key(keyfile)
-    return lambda part: ae.seal(key, part.encode("utf-8"))
+    return lambda data: ae.seal(key, data)
 
 
-def serve_stdin(pack, max_chars, seal):
+def _import_arrowcontent():
+    # ponytail: same sibling-checkout/PYTHONPATH lookup as sealer() above, mirrored exactly.
+    sys.path.append(str(Path(__file__).resolve().parent.parent / "arrowmem-envelope"))
+    import arrowcontent as ac
+    return ac
+
+
+def load_content(pack_dir):
+    """Only called for --content ref/dict or --decode, so plain-mode users need neither
+    arrowcontent nor a built dictionary: stdlib-only stays true for them."""
+    import build_dict
+    ac = _import_arrowcontent()
+    dictionary = build_dict.build_dictionary(pack_dir)
+    return ac, dictionary
+
+
+def content_index(ac, pack):
+    """object id -> reply bytes, for every reply the closed grammar can emit. Built locally
+    from the running pack, never trusted from the wire (SPEC-CONTENT.md 0x03)."""
+    return {ac.object_id(text.encode("utf-8")): text.encode("utf-8")
+            for text in grammar_replies(pack).values()}
+
+
+def content_frames(ac, dictionary, mode, text, max_chars):
+    """mode 'ref': one 0x03 frame, always, regardless of max_chars (SPEC-CONTENT.md: a
+    reference carries no content, so there is nothing to chunk). mode 'dict': chunk text
+    first (same chunk() the plain path uses), then compress EACH CHUNK independently against
+    the dictionary, one 0x04 frame per chunk (SPEC-CONTENT.md: never one running stream)."""
+    if mode == "ref":
+        return [ac.build_reference(dictionary, text.encode("utf-8"))]
+    return [ac.build_compressed(dictionary, part.encode("utf-8")) for part in chunk(text, max_chars)]
+
+
+def decode_stdin(ac, dictionary, index):
+    """--decode: one hex content frame per non-blank stdin line. Prints decoded text, or the
+    spec's named error string, one per line; exit code is non-zero if any line errored."""
+    sys.stdout.reconfigure(newline="\n")
+    exit_code = 0
+    did = ac.content_id(dictionary)
+    for line in sys.stdin:
+        line = line.strip()
+        if not line:
+            continue
+        frame = bytes.fromhex(line)
+        try:
+            if frame[:1] == ac.REFERENCE:
+                out = ac.resolve_reference(frame, dictionary, index)
+            elif frame[:1] == ac.COMPRESSED:
+                out = ac.decode_compressed(frame, {did: dictionary})
+            else:
+                raise ac.ContentError("not a reference frame")
+            print(out.decode("utf-8"))
+        except ac.ContentError as e:
+            print(str(e))
+            exit_code = 1
+    sys.exit(exit_code)
+
+
+def serve_stdin(pack, max_chars, seal, content_mode="plain", ac=None, dictionary=None):
     """One command per line in; the reply's chunks, one blank line after each reply, out.
-    With --sign each chunk is one line of hex (a sealed chunk is binary and may contain 0x0A)."""
+    With --sign each chunk is one line of hex (a sealed chunk is binary and may contain 0x0A).
+    With --content ref/dict, every line is a content frame: always binary, so always hex,
+    signed or not, same one-frame-per-line shape as the signed plain path."""
     sys.stdout.reconfigure(encoding="utf-8", newline="\n")
     for line in sys.stdin:
         if not line.strip():
             continue
-        for part in chunk(reply(pack, line), max_chars):
-            sys.stdout.write(seal(part).hex() + "\n" if seal else part + ("" if part.endswith("\n") else "\n"))
+        text = reply(pack, line)
+        if content_mode != "plain":
+            for frame in content_frames(ac, dictionary, content_mode, text, max_chars):
+                sys.stdout.write((seal(frame) if seal else frame).hex() + "\n")
+        else:
+            for part in chunk(text, max_chars):
+                sys.stdout.write(seal(part.encode("utf-8")).hex() + "\n" if seal
+                                  else part + ("" if part.endswith("\n") else "\n"))
         sys.stdout.write("\n")
         sys.stdout.flush()
 
@@ -161,7 +249,7 @@ def serve_lxmf(pack, max_chars, seal, configdir):
             else:
                 return RNS.log("ERP: no path back to " + RNS.prettyhexrep(msg.source_hash), RNS.LOG_WARNING)
         for part in chunk(reply(pack, msg.content_as_string() or ""), max_chars):
-            router.handle_outbound(LXMF.LXMessage(dest, me, seal(part) if seal else part))
+            router.handle_outbound(LXMF.LXMessage(dest, me, seal(part.encode("utf-8")) if seal else part))
 
     router.register_delivery_callback(lambda m: threading.Thread(target=answer, args=(m,), daemon=True).start())
     print("ArrowMem ERP LXMF address: " + RNS.hexrep(me.hash, delimit=False), file=sys.stderr, flush=True)
@@ -177,12 +265,23 @@ def main(argv=None):
     p.add_argument("--sign", metavar="KEYFILE", help="seal each chunk with an arrowenvelope key (off by default)")
     p.add_argument("--lxmf", action="store_true", help="serve over LXMF instead of stdin/stdout")
     p.add_argument("--config", help="Reticulum config directory for --lxmf (default: Reticulum's own)")
+    p.add_argument("--content", choices=["plain", "ref", "dict"], default="plain",
+                    help="stdin/stdout only: plain (default; the fallback rule), ref (0x03 "
+                         "content reference), dict (0x04 dictionary-compressed)")
+    p.add_argument("--decode", action="store_true",
+                    help="read hex content frames from stdin, print decoded text or named errors")
     a = p.parse_args(argv)
     pack, seal = load_pack(a.pack), sealer(a.sign) if a.sign else None
-    if a.lxmf:
+    ac = dictionary = index = None
+    if a.content != "plain" or a.decode:
+        ac, dictionary = load_content(a.pack)
+        index = content_index(ac, pack)
+    if a.decode:
+        decode_stdin(ac, dictionary, index)
+    elif a.lxmf:
         serve_lxmf(pack, a.max_chars, seal, a.config)
     else:
-        serve_stdin(pack, a.max_chars, seal)
+        serve_stdin(pack, a.max_chars, seal, a.content, ac, dictionary)
 
 
 if __name__ == "__main__":

@@ -102,6 +102,77 @@ Air time is characters times 0.16 s, before their LDPC block rounding and frame 
 `--max-chars 200` fits their unsealed PAYLOAD; `--max-chars 127` leaves room for the 73-byte
 envelope header when signing.
 
+## Faster frames (optional, off by default)
+
+`--content {plain,ref,dict}` (default `plain`) rides arrowcontent's wire format
+(`arrowmem-envelope/SPEC-CONTENT.md`) as the frame's payload: `ref` sends one 41-byte 0x03
+content reference per reply, `dict` sends one 0x04 dictionary-compressed frame per chunk. The
+dictionary (`pack.dict`, id `5ffbd490ada4f969`) is built from this node's own pack in the
+pinned order SPEC-CONTENT.md names, and ships committed in this repository (`build_dict.py`
+rebuilds it; `python3 -m unittest -v` checks the committed file matches a fresh build). Both
+modes need `pip install cryptography` for nothing extra; they only need the sibling
+`arrowmem-envelope` checkout (or `PYTHONPATH`), same as `--sign`.
+
+**Fallback rule: plain is the default and stays the default for any peer that has not said it
+holds the pack.** SPEC-CONTENT.md's 0x05 HOLDS advertise-before-compress frame and full
+peer-tracking are not wired here; `--content ref`/`--content dict` are explicit opt-in flags a
+node operator sets only when the peer is known to run the identical pack (this node's own case
+today, per SPEC-CONTENT.md's own reading: "the request already is the reference case"). A peer
+that does not speak these frames simply never gets one, because plain stays the default.
+
+**Who has to hold what.** `ref` mode: both ends need byte-identical `pack/` content (same
+`pack/SOURCE.md` commit) and each builds its own index from it; a reply this node can emit but
+the receiver's pack predates is `reference not held`, never a guess. `dict` mode: both ends
+need the identical `pack.dict` bytes (checked by id); a receiver on an older or newer pack
+gets `unknown dictionary`.
+
+    python3 erp_node.py --pack pack --content ref
+    python3 erp_node.py --pack pack --content dict --max-chars 127
+    python3 erp_node.py --pack pack --decode
+
+stdin/stdout only (not wired to `--lxmf` in this change). Each line out is one content frame,
+hex-encoded (always, signed or not, since a frame is binary); `--sign` seals the frame itself,
+so the content frame becomes the envelope payload. `--decode` reads hex frames back and prints
+either the decoded text or one of SPEC-CONTENT.md's named errors (`not a compressed frame`,
+`unknown dictionary`, `bad inflate`, `too long`, `reference not held`), non-zero exit on error.
+
+### Measurement
+
+    python3 measure.py
+
+Reproducible over the full closed grammar (39 replies, 16,059 raw bytes). Both of
+SPEC-CONTENT.md's honest cases are printed, never a single ratio: (a) the dictionary excludes
+the reply's own source content file, the novel-reply case; (b) the full shipping dictionary,
+reply's own source included, the reference case (this node answering from its own pack, to a
+second node running the same pack).
+
+    reply                  raw  f@200  f@127  ref  dict(a)  dict(b)
+    ---------------------------------------------------------------
+    ERP                    378      3      5    1      155      155
+    ERP BASIC             1600     12     18    1      652      109
+    ERP BUSH               277      2      3    1      155       74
+    ERP LINES             2913     19     30    1      122      122
+    ...
+    ---------------------------------------------------------------
+    TOTAL                16059    116    178   39     5513     1397
+
+    case (a), dictionary excludes the reply's own source file: 16059 raw -> 5513 bytes, 2.913x
+    case (b), reference case, full shipping dictionary: 16059 raw -> 1397 bytes, 11.495x
+    ref mode (0x03): 39 frames total, 41 bytes each, regardless of reply length (this node
+    already holds every reply it can emit)
+
+Case (a) here excludes a reply's own tier content file (`basic_vehicle.json` or
+`bush_lost.json`) where one applies, and is otherwise the full dictionary; it is an
+approximation of SPEC-CONTENT.md's own per-reply exclusion, and the two numbers are not
+expected to match exactly. Case (b) matches SPEC-CONTENT.md's own pinned-order measurement
+exactly (1,397 bytes, 11.495x). Never quote either as a single figure without its label.
+
+### Legal reading
+
+A published algorithm (RFC 1951) against a published, content-addressed dictionary obscures
+nothing; see `arrowmem-envelope/SPEC-CONTENT.md` "Legal reading" for the full statutory text
+this reasoning rests on.
+
 ## Signing (optional, off by default)
 
     PYTHONPATH=../arrowmem-envelope python3 -m arrowenvelope keygen node.key
@@ -130,8 +201,10 @@ translations and changed refusals happen in the pack repository, never here.
 
 Every grammar branch, case and whitespace tolerance, out-of-range and unknown input, the
 content boundary above, chunk reassembly identity at several budgets, the stdin transport via
-subprocess, signing when arrowenvelope is importable, and an LXMF loopback between two
-processes on one shared Reticulum instance when `rns` and `lxmf` are installed.
+subprocess, signing when arrowenvelope is importable, an LXMF loopback between two processes
+on one shared Reticulum instance when `rns` and `lxmf` are installed, the `pack.dict` id and
+that it matches a fresh build, and (when arrowcontent is importable) `ref`/`dict` round trips
+over every grammar reply plus every named decoder error.
 
 ## Licence
 

@@ -257,6 +257,125 @@ class Signing(unittest.TestCase):
                 ae.open(bytes.fromhex(lines[0]), {})
 
 
+try:
+    sys.path.append(str(HERE.parent / "arrowmem-envelope"))
+    import arrowcontent as ac
+except ImportError:  # pragma: no cover
+    ac = None
+
+import build_dict
+
+GRAMMAR = erp_node.grammar_replies(pack)
+
+
+class DictionaryBuild(unittest.TestCase):
+    def test_dictionary_id_matches_spec(self):
+        dictionary = build_dict.build_dictionary(PACK)
+        self.assertEqual(len(dictionary), 29864)
+        self.assertEqual(build_dict.dictionary_id(dictionary).hex(), "5ffbd490ada4f969")
+
+    def test_committed_pack_dict_matches_a_fresh_build(self):
+        committed = (HERE / "pack.dict").read_bytes()
+        self.assertEqual(committed, build_dict.build_dictionary(PACK))
+
+    def test_grammar_reply_count_matches_spec_measurement(self):
+        self.assertEqual(len(GRAMMAR), 39)
+        self.assertEqual(sum(len(t) for t in GRAMMAR.values()), 16059)
+
+
+@unittest.skipUnless(ac, "arrowcontent not importable (sibling checkout or PYTHONPATH)")
+class ContentFrames(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.dictionary = build_dict.build_dictionary(PACK)
+        cls.index = erp_node.content_index(ac, pack)
+
+    def test_red_wrong_dictionary_id_is_refused_not_silently_accepted(self):
+        # RED FIRST (run before resolve_reference existed here): a decoder that trusts a
+        # frame's claimed corpus id without checking it against the corpus it actually holds
+        # must be caught, not accepted.
+        frame = ac.build_reference(self.dictionary, GRAMMAR["ERP"].encode("utf-8"))
+        with self.assertRaisesRegex(ac.ContentError, "reference not held"):
+            ac.resolve_reference(frame, b"not the real dictionary", self.index)
+
+    def test_ref_round_trip_every_reply(self):
+        for cmd, text in GRAMMAR.items():
+            frames = erp_node.content_frames(ac, self.dictionary, "ref", text, 0)
+            self.assertEqual(len(frames), 1, cmd)
+            self.assertEqual(len(frames[0]), 41, cmd)
+            out = ac.resolve_reference(frames[0], self.dictionary, self.index)
+            self.assertEqual(out, text.encode("utf-8"), cmd)
+
+    def test_dict_round_trip_every_reply(self):
+        dictionaries = {ac.content_id(self.dictionary): self.dictionary}
+        for cmd, text in GRAMMAR.items():
+            frames = erp_node.content_frames(ac, self.dictionary, "dict", text, 127)
+            decoded_parts = [ac.decode_compressed(f, dictionaries).decode("utf-8") for f in frames]
+            self.assertEqual("".join(strip_prefixes(decoded_parts)), text, cmd)
+
+    def test_reference_not_held_unknown_object(self):
+        bogus = ac.build_reference(self.dictionary, b"not a real reply")
+        with self.assertRaisesRegex(ac.ContentError, "reference not held"):
+            ac.resolve_reference(bogus, self.dictionary, self.index)
+
+    def test_named_errors(self):
+        did = ac.content_id(self.dictionary)
+        with self.assertRaisesRegex(ac.ContentError, "not a compressed frame"):
+            ac.decode_compressed(b"\x04\x00", {did: self.dictionary})
+        with self.assertRaisesRegex(ac.ContentError, "unknown dictionary"):
+            ac.decode_compressed(ac.build_compressed(self.dictionary, b"x"), {})
+        with self.assertRaisesRegex(ac.ContentError, "bad inflate"):
+            ac.decode_compressed(ac.COMPRESSED + did + b"\xff\xff\xff\xff", {did: self.dictionary})
+        big = ac.build_compressed(self.dictionary, b"x" * 10000)
+        with self.assertRaisesRegex(ac.ContentError, "too long"):
+            ac.decode_compressed(big, {did: self.dictionary})
+
+    def test_cli_ref_mode_through_decode(self):
+        out = subprocess.run([sys.executable, str(HERE / "erp_node.py"), "--pack", str(PACK), "--content", "ref"],
+                             input=b"ERP BASIC 3\n", capture_output=True, timeout=60, cwd=HERE)
+        self.assertEqual(out.returncode, 0, out.stderr)
+        frame_lines = [l for l in out.stdout.decode("ascii").splitlines() if l]
+        self.assertEqual(len(frame_lines), 1)
+        self.assertEqual(len(bytes.fromhex(frame_lines[0])), 41)
+        back = subprocess.run([sys.executable, str(HERE / "erp_node.py"), "--pack", str(PACK), "--decode"],
+                              input=out.stdout, capture_output=True, timeout=60, cwd=HERE)
+        self.assertEqual(back.returncode, 0, back.stderr)
+        self.assertEqual(back.stdout.decode("utf-8").strip("\n"), GRAMMAR["ERP BASIC 3"])
+
+    def test_cli_dict_mode_through_decode(self):
+        # ERP LINES: multi-frame at --max-chars 127, and its own text has internal newlines,
+        # so reassembly is checked frame by frame against erp_node.chunk()'s own parts rather
+        # than by re-splitting --decode's line-oriented stdout (which is not itself an
+        # unambiguous frame separator once a decoded chunk contains a newline).
+        out = subprocess.run([sys.executable, str(HERE / "erp_node.py"), "--pack", str(PACK),
+                              "--content", "dict", "--max-chars", "127"],
+                             input=b"ERP LINES\n", capture_output=True, timeout=60, cwd=HERE)
+        self.assertEqual(out.returncode, 0, out.stderr)
+        frame_lines = [l for l in out.stdout.decode("ascii").splitlines() if l]
+        expected_parts = erp_node.chunk(GRAMMAR["ERP LINES"], 127)
+        self.assertEqual(len(frame_lines), len(expected_parts))
+        dictionaries = {ac.content_id(self.dictionary): self.dictionary}
+        decoded_parts = [ac.decode_compressed(bytes.fromhex(l), dictionaries).decode("utf-8") for l in frame_lines]
+        self.assertEqual(decoded_parts, expected_parts)
+        self.assertEqual("".join(strip_prefixes(decoded_parts)), GRAMMAR["ERP LINES"])
+
+    def test_cli_decode_reports_named_error_and_exits_nonzero(self):
+        garbage = (b"\x04" + ac.content_id(self.dictionary) + b"\xff\xff\xff\xff").hex() + "\n"
+        out = subprocess.run([sys.executable, str(HERE / "erp_node.py"), "--pack", str(PACK), "--decode"],
+                             input=garbage.encode("ascii"), capture_output=True, timeout=60, cwd=HERE)
+        self.assertNotEqual(out.returncode, 0)
+        self.assertEqual(out.stdout.decode("ascii").strip(), "bad inflate")
+
+
+class PlainModeRegression(unittest.TestCase):
+    def test_content_flag_default_is_plain_and_unchanged(self):
+        # Same expectation StdinTransport.test_round_trip already asserts; restated here next
+        # to the new --content flag so a future reader sees plain mode was checked against it.
+        out = run_node(stdin_text="ERP BASIC 1\n")
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertEqual(out.stdout.decode("utf-8"), erp_node.reply(pack, "ERP BASIC 1") + "\n\n")
+
+
 def free_port():
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))

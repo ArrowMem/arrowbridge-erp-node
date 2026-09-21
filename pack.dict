@@ -1,0 +1,376 @@
+{
+  "_note": "scenario/action id -> the source line shown as this pack's citation for that content. Same contract this product's shared safety module reads for VAC: citations.get(id) or citations.get('_default') over the WHOLE parsed file, no wrapper key. structural_report()'s own probe only checks that '_default' resolves; every other key below is real content-to-source mapping, not filler.",
+  "_default": "Each entry in this register names its own source in its own line. An entry marked VERIFIED was checked directly against that source. The working notes behind this register are not part of this pack.",
+  "basic_stay_in_vehicle": "US National Weather Service winter storm guidance ('Stay in the vehicle!'); echoed by Public Safety Canada and a road safety regulator. VERIFIED, unanimous, unconditional.",
+  "basic_clear_exhaust": "Public Safety Canada, a road safety regulator, and the US National Weather Service, four bodies total. VERIFIED.",
+  "basic_crack_window": "US National Weather Service. VERIFIED.",
+  "basic_run_engine_intermittent": "US National Weather Service publishes 'about 10 minutes each hour'; a second body publishes 'only sporadically' with no number. VERIFIED, UNRECONCILED. Printed with its disagreement stated, never as consensus.",
+  "basic_visible_marker": "US National Weather Service and a road safety regulator (bright cloth on the antenna; raise the hood only after snow stops falling). VERIFIED.",
+  "basic_move_body": "US National Weather Service and a road safety regulator, published under general cold-exposure guidance. VERIFIED.",
+  "basic_phone_charged_call_911": "A road safety regulator (Transport Canada-style: keep the phone charged, carry a cable, call 911); a weather service lists phone/charger/batteries as the first item in a vehicle kit; CRTC and a BC search and rescue association on any-tower 911 access. VERIFIED.",
+  "basic_headlights_withheld": "Unresolved between the sources found: whether to clear headlights and run them, or clear them and leave them off until a vehicle is heard.",
+  "bush_stay_put": "US National Park Service, Mountain Rescue England and Wales, AdventureSmart's Hug-a-Tree programme. VERIFIED, unanimous in public-facing copy.",
+  "bush_trip_plan": "Ontario Search and Rescue Volunteer Association (OSARVA): staying in place is not unconditional guidance. It holds only while there remains a reasonable basis to think searchers will begin looking soon, on the person's behalf. VERIFIED.",
+  "bush_deviation_withheld": "Recognised search and rescue bodies disagree with each other on what a lost person should do if they decide to move instead of staying put; terrain-specific and unresolved, so not addressed here rather than guessed.",
+  "bush_groups_of_three": "OSARVA (any distress signal in groups of three) and a Government of Canada DND air cadet publication (three fires, 35 metres/100 feet apart). VERIFIED.",
+  "bush_visual_signal_size": "Government of Canada DND air cadet manual: signals 3m wide, 10m long if possible, 3m apart; geometric shapes read as human-made before detail resolves. VERIFIED.",
+  "bush_stay_with_signal": "AdventureSmart: a lost person should stay as close to their signal source as they can, at all times. VERIFIED.",
+  "bush_shelter_tradeoff": "OSARVA: a built shelter can create a camouflaging effect that hides a lost person from searchers. VERIFIED. Stated as a genuine trade-off, not resolved either way.",
+  "bush_whistle_over_voice": "US National Park Service (energy), a Government of Canada DND publication (acoustic design), OSARVA and AdventureSmart (stop periodically so you can hear a reply). VERIFIED.",
+  "bush_ground_to_air_chart_withheld": "The IAMSAR chart is sold under copyright; Canada's own CAMSAR supplement does not contain it; two Canadian bodies' five-symbol sets differ in two of five entries.",
+  "bush_phone_911_any_tower": "CRTC (basic wireless 911 service with no active subscription) and a BC search and rescue association (connects to any cell tower in range). VERIFIED.",
+  "bush_phone_no_text_911": "CRTC: text-to-911 is a registered service for hearing/speech impaired Canadians who must dial first; not generally available. VERIFIED.",
+  "bush_phone_on_or_off_withheld": "Canada's national outdoor safety programme and the US National Park Service publish power-off guidance; a Government of Canada defence document on an airborne search sensor describes locating an operating handset. A genuine, unreconciled conflict inside Canadian official sources.",
+  "bush_boil_water": "Health Canada: rolling boil for 1 minute inactivates waterborne bacteria, protozoa and viruses; at least 2 minutes above 2000m. VERIFIED.",
+  "bush_boiling_does_not_fix_everything": "Health Canada and US CDC: boiling does not address chemical or radiological contamination. VERIFIED, both.",
+  "bush_do_not_eat_snow": "US National Weather Service: eating unmelted snow lowers body temperature. VERIFIED. No Canadian federal equivalent was found.",
+  "bush_keep_one_reference": "Souman, Frissen, Sreenivasan, Ernst, 'Walking Straight Into Circles', Current Biology, 2009: participants who could not see the sun walked in circles; a visible reference stopped it. VERIFIED, peer-reviewed.",
+  "bush_phone_compass_limits": "Apple and Android's own developer documentation (true heading needs a location fix; magnetic heading does not); NRCan on declination variability increasing toward the north. VERIFIED.",
+  "bush_navigation_technique_withheld": "No recognised search and rescue body publishes a taught navigation procedure for a person currently lost. Basic navigation ships as a separate learning pack.",
+  "bush_moss_debunked": "A US state conservation agency's own myth-busting material: moss growing does not reliably indicate north. VERIFIED.",
+  "bush_tree_branches_debunked": "A municipal parks authority: tree branches point in all directions and the method is not as reliable as a compass. VERIFIED, municipal source tier.",
+  "bush_folklore_unresolved": "NOTHING FOUND, either direction, for tree ring asymmetry, snow melt patterns, or prevailing wind.",
+  "bush_no_food_identification": "Peer-reviewed measurement of plant and mushroom identification apps: species-level accuracy as low as 44-58%, poisonous species misidentified as edible, and a poisons information centre observing an increase in poisonings after app-guided misidentification. VERIFIED.",
+  "bush_radio_licence_exempt": "ISED Canada standards: FRS and GMRS licence-exempt under RSS-210; CB Channel 9 reserved for emergency communications; marine VHF Channel 16 monitored by the Coast Guard 24/7. VERIFIED.",
+  "bush_radio_beacon": "406 MHz personal locator beacons: any signal received is treated as a positive indication of distress. VERIFIED, framed operationally rather than as a marine-carriage rule generalised.",
+  "bush_radio_legal_unresolved": "No explicit distress exception was located in the Radiocommunication Act or its regulations; absence of a found provision is not proof none exists. UNVERIFIED, stated as unknown rather than guessed."
+}
+{
+  "_what_this_is": "THE BASIC TIER. A person on a road, in or near a vehicle that cannot move. They are not lost - they know exactly where they are. This is the half this pack's own planning notes call 'the half that earns the pack its place': most Canadians meet this several times in a life, and the published guidance is the clearest and least ambiguous of anything in this pack. Every action below is VERIFIED and, unless stated otherwise, UNANIMOUS across the sources named in citations.json.",
+  "_zero_signal": "Every action below is static text with no field a model can rewrite. It works with the phone in a drawer.",
+  "version": 1,
+  "product": "erp",
+  "tier": "basic",
+  "scenario_id": "basic_stranded_vehicle",
+  "title_en": "Stranded in a vehicle, in a storm or on a back road",
+  "who_this_is_for_en": "You are in or near a vehicle that cannot move. You know where you are.",
+  "actions": [
+    {
+      "id": "basic_stay_in_vehicle",
+      "order": 1,
+      "text_en": "Stay in the vehicle. In blowing snow you can lose sight of it within moments of leaving it, and become impossible to find.",
+      "source_id": "basic_stay_in_vehicle"
+    },
+    {
+      "id": "basic_clear_exhaust",
+      "order": 2,
+      "text_en": "Clear the exhaust pipe of snow and ice, and check it again from time to time. A blocked pipe pushes carbon monoxide back into the vehicle.",
+      "source_id": "basic_clear_exhaust"
+    },
+    {
+      "id": "basic_crack_window",
+      "order": 3,
+      "text_en": "If you run the engine, open a window slightly for fresh air, for the same reason.",
+      "source_id": "basic_crack_window"
+    },
+    {
+      "id": "basic_run_engine_intermittent",
+      "order": 4,
+      "text_en": "Run the engine only in short stretches for heat, not continuously. One source publishes about ten minutes each hour; another says only occasionally, with no number. If you want a figure to use, use ten minutes an hour - and know that is not agreed doctrine, it is one source's number among sources that disagree.",
+      "source_id": "basic_run_engine_intermittent"
+    },
+    {
+      "id": "basic_visible_marker",
+      "order": 5,
+      "text_en": "Tie something bright to the antenna, or hang it from a window. Once snow stops falling, raise the hood.",
+      "source_id": "basic_visible_marker"
+    },
+    {
+      "id": "basic_move_body",
+      "order": 6,
+      "text_en": "Move your arms, legs, fingers and toes to keep blood moving. Do not overexert yourself - sweating in the cold works against you.",
+      "source_id": "basic_move_body"
+    },
+    {
+      "id": "basic_phone_charged_call_911",
+      "order": 7,
+      "text_en": "Keep your phone charged - a vehicle can recharge it - and call 911 if you have any signal at all. An emergency call connects through any carrier's tower in range, even if you have no active plan with that carrier.",
+      "source_id": "basic_phone_charged_call_911",
+      "note_en": "This is the vehicle answer and it is the opposite of the on-foot answer this pack gives elsewhere - see bush_lost.json's phone section. A vehicle has an alternator and, per the sourced guidance, a charging cable is part of the recommended kit; a person on foot has neither, which is why the two scenarios are not given the same phone instruction."
+    }
+  ],
+  "withheld_from_this_scenario": [
+    {
+      "id": "basic_headlights_withheld",
+      "reason_id": "no_vehicle_headlight_instruction"
+    },
+    {
+      "id": "basic_snow_shelter_comparison_withheld",
+      "text_en": "This pack does not compare building a snow shelter against staying in the vehicle beyond telling you to stay in the vehicle (action 1). A search and rescue partner has not confirmed the comparison, so this pack does not go further than the one instruction it can source unconditionally."
+    }
+  ]
+}{
+  "_what_this_file_is": "THE REFUSALS, WRITTEN DOWN SO NOBODY ADDS THE CONTENT BACK IN AS AN OBVIOUS WIN. Same pattern used elsewhere in this product's content packs, and the same reasoning this pack's own planning notes give for the food-identification refusal: 'this section exists so nobody adds it later as an obvious win.' Each entry names what is withheld, why, and what a person is told instead.",
+
+  "_the_asymmetry_that_governs_this_whole_pack": {
+    "rule": "STAY-PUT AND BEING-FOUND CONTENT IS ESCALATION-SHAPED AND SAFE TO STATE PLAINLY. ANYTHING THAT TELLS A PERSON WHAT TO DO INSTEAD OF THE PUBLISHED DOCTRINE IS WITHHELD UNTIL A NAMED PARTNER ANSWERS WHETHER TO GIVE IT AT ALL.",
+    "why": "Escalation (stay put, get found, call 911) is safe because its failure mode is a wasted wait. Telling someone what to do if they move anyway is closer to de-escalation's shape - if it is wrong for their terrain, the failure mode is a longer search or a worse injury, and two recognised bodies already give OPPOSITE terrain-specific deviation guidance. This pack does not guess which one applies to a reader it cannot see."
+  },
+
+  "refusals": [
+    {
+      "id": "no_deviation_guidance",
+      "withheld": "What to do if a person decides to move instead of staying put - route-finding, terrain-specific movement, when moving stops being wrong.",
+      "why": "BLOCKING and unanswered: a search and rescue partner has been asked whether to give this guidance at all, and three recognised bodies give opposite terrain-specific answers on the identical question (follow a drainage downhill as a last resort / a national park warns against exactly that / a BC SAR team says avoid going downhill entirely). No partner has answered either question.",
+      "text_en": "This pack tells you what published guidance says to do, plainly. It does not tell you what to do if you decide to move instead - that guidance is terrain-specific, search and rescue bodies disagree with each other on it, and we have not asked ours yet. We would rather say nothing than guess."
+    },
+    {
+      "id": "no_on_foot_phone_instruction",
+      "withheld": "Whether to turn a phone off, leave it on, or use airplane mode while lost on foot.",
+      "why": "BLOCKING and unanswered: a search and rescue partner has been asked and has not answered. Canada's national outdoor safety programme and the US National Park Service publish power-off guidance; a Government of Canada defence document on an airborne search sensor describes locating an operating handset. Neither source cites the other and neither is wrong; this pack is not going to resolve a live disagreement between two Canadian official sources by picking a side.",
+      "text_en": "This pack does not tell you whether to turn your phone off, leave it on, or use airplane mode while lost on foot. Two Canadian official sources disagree with each other and we have asked a search and rescue partner rather than guess. What is settled: your phone still dials 911 through any carrier's tower, even with no plan, if you get even a moment of signal."
+    },
+    {
+      "id": "no_vehicle_headlight_instruction",
+      "withheld": "Whether to clear headlights and run them, or clear them and leave them off until a vehicle is heard.",
+      "why": "BLOCKING and unresolved: a search and rescue partner has been asked. Those are different instructions and no source resolves which is right.",
+      "text_en": "This pack says nothing about your headlights beyond keeping them clear of snow. What to do with them after that is unresolved between the sources we found."
+    },
+    {
+      "id": "no_ground_to_air_signal_chart",
+      "withheld": "A reproduced chart of standardised ground-to-air distress signal symbols.",
+      "why": "The international chart sits in a manual sold under copyright and could not be read; two Canadian bodies' own five-symbol sets differ in two of five entries and neither is confirmed reproducible.",
+      "text_en": "Standardised ground-to-air signal symbols exist. This pack does not reproduce a chart of them: the two Canadian sets we found disagree with each other, and the source manual is sold under copyright."
+    },
+    {
+      "id": "no_movement_attracts_the_eye_claim",
+      "withheld": "The widely repeated claim that moving in the open makes a person easier for a search aircraft to spot.",
+      "why": "NOTHING FOUND in any permitted source, in either direction. The only directly relevant published statement found is the opposite of what would be assumed: a helicopter approach is met by staying in position, not waving or moving.",
+      "text_en": "We could not find a source, official or otherwise, saying that movement makes you easier for a search aircraft to see. We are not repeating it."
+    },
+    {
+      "id": "no_navigation_technique_for_someone_currently_lost",
+      "withheld": "A bearing, a shadow-stick method, a star method, or any instruction on navigating out of a current situation.",
+      "why": "RULED, not deferred: no recognised SAR body, park service or emergency management agency publishes a taught navigation procedure addressed to a person who is CURRENTLY LOST. Navigation is taught as prevention, to a person who is not lost. Basic navigation ships as its own learning pack, framed for someone at home before a trip.",
+      "text_en": "This pack does not teach you how to navigate yourself out. No search and rescue body publishes that as guidance for someone currently lost - navigation is taught before a trip, to someone who is not in trouble. If you want to learn map, compass or star navigation, that is a separate learning pack for when you are safe."
+    },
+    {
+      "id": "no_food_or_plant_identification",
+      "withheld": "Whether a plant, mushroom, or fish is safe to eat.",
+      "why": "Peer-reviewed testing of identification apps found species-level accuracy as low as 44-58%, poisonous species misidentified as edible including the mushroom responsible for the most poisoning deaths worldwide, and a poisons information centre observing an increase in poisonings that followed app-guided misidentification.",
+      "text_en": "This pack will not tell you whether a plant, mushroom, or fish is safe to eat. Tested identification apps get this wrong often enough to kill someone, and a wrong call here can be fatal in a way that waiting on food is not. You can go far longer without food than most people expect. Getting found matters more."
+    },
+    {
+      "id": "no_radio_legal_position",
+      "withheld": "Whether it is legal for an untrained person to transmit a distress call on a licensed emergency frequency in a genuine emergency.",
+      "why": "No explicit distress exception was located in the Radiocommunication Act or its regulations, and absence of a found provision is not proof none exists. This is a counsel question, not a research one.",
+      "text_en": "We do not know, and are not going to guess, whether it is legal for an untrained person to transmit on a licensed emergency frequency in a genuine distress situation. Use a 406 MHz beacon, marine VHF Channel 16, or 911 - do not wait on that question if you are in trouble."
+    },
+    {
+      "id": "no_trauma_or_first_aid_content",
+      "withheld": "Any procedure, technique, dosage, timing, or severity judgement about a physical injury.",
+      "why": "No licensable Canadian civilian first aid source exists (Red Cross and St John are all rights reserved; TCCC's reuse position is unverified and written for a combat medic with drugs and blood), and no clinical reviewer is engaged. safety/clinical_clearance.json is the guarded, empty slot this ships with instead.",
+      "text_en": "This pack does not cover first aid or physical injury care. If someone is badly hurt, call 911 and stay on the line if you can."
+    },
+    {
+      "id": "no_mental_health_protocol",
+      "withheld": "Any mental-health first-aid protocol, action plan, or 'what to say / what not to say' script.",
+      "why": "Course materials are closed to us, and no accrediting partner has cleared content from the open CC BY journal layer that could otherwise be used. Whether a partner exists who would clear content they did not author is the real feasibility question, and it has not been answered.",
+      "text_en": "This pack does not cover what to do if someone is in a mental health crisis. Course materials for that are closed to us and no accrediting partner has cleared content we could offer instead, so this pack adds nothing on it."
+    },
+    {
+      "id": "no_emergency_alert_or_shelter_routing",
+      "withheld": "Receiving public emergency alerts, or naming a specific shelter or reception centre to go to.",
+      "why": "RULED, not deferred: the alerting standard carries no destination element at all in the sampled feed, and Canada has no public shelter or reception-centre dataset - the only matching open data is homelessness-sector shelter beds, which would misroute someone fleeing a disaster.",
+      "text_en": "This pack does not receive emergency alerts or tell you which shelter to go to. Canada has no public data that would let it do that safely."
+    }
+  ]
+}
+{
+  "_what_this_is": "THE BUSH TIER. A person lost on foot, or hurt and alone, in the backcountry. Sections are ordered stay-put first, on purpose, per this pack's own planning notes: 'a lost person who reads a search technique first will walk, and walking turns a short search into a long one.' Every item is VERIFIED unless marked otherwise. Items marked withheld are named, not silently missing - see safety/hard_lines.json for the full reasoning on each.",
+  "_zero_signal": "Every action below is static text with no field a model can rewrite and no field a reader's own situation can be typed into.",
+  "version": 1,
+  "product": "erp",
+  "tier": "bush",
+
+  "scenario_id": "bush_lost_on_foot",
+  "title_en": "Lost on foot, or hurt and alone, in the backcountry",
+  "who_this_is_for_en": "You are lost, or hurt, or overdue, away from a road.",
+
+  "sections": [
+    {
+      "section_id": "stay_put",
+      "title_en": "Stay where you are",
+      "actions": [
+        {
+          "id": "bush_stay_put",
+          "order": 1,
+          "text_en": "The published guidance is stay put. Moving makes you harder to find, and turns a short search into a long one.",
+          "source_id": "bush_stay_put"
+        },
+        {
+          "id": "bush_trip_plan",
+          "order": 2,
+          "text_en": "Stay put works because someone is coming. Before you go anywhere, tell a specific person where you are going and when you will be back - that is what turns 'stay put' from a hope into a strategy.",
+          "source_id": "bush_trip_plan"
+        }
+      ],
+      "withheld": [
+        {"id": "bush_deviation_withheld", "reason_id": "no_deviation_guidance"}
+      ]
+    },
+    {
+      "section_id": "being_found",
+      "title_en": "Being found is the actual job",
+      "actions": [
+        {
+          "id": "bush_groups_of_three",
+          "order": 1,
+          "text_en": "Any distress signal works in groups of three - three sounds, three fires, three flashes - with a pause between each group, so it reads as a signal rather than noise.",
+          "source_id": "bush_groups_of_three"
+        },
+        {
+          "id": "bush_visual_signal_size",
+          "order": 2,
+          "text_en": "A ground signal is easiest to see from the air if it is at least 3 metres wide, and 10 metres long if you can manage it, with clear space around it. Straight lines and geometric shapes read as human-made long before anyone can see detail.",
+          "source_id": "bush_visual_signal_size"
+        },
+        {
+          "id": "bush_stay_with_signal",
+          "order": 3,
+          "text_en": "Stay close to whatever you are using to signal - a fire, a marker - so you do not miss being seen while you are away from it.",
+          "source_id": "bush_stay_with_signal"
+        },
+        {
+          "id": "bush_shelter_tradeoff",
+          "order": 4,
+          "text_en": "A shelter keeps you warm, and a shelter can also hide you from searchers by blending into the terrain. This is a real trade-off and no source resolves it for you - use judgement about which risk is worse for your situation.",
+          "source_id": "bush_shelter_tradeoff"
+        },
+        {
+          "id": "bush_whistle_over_voice",
+          "order": 5,
+          "text_en": "A whistle carries farther and costs less energy than shouting. Blow it in groups of three, then stop and listen - do not blow continuously, or you will not hear a searcher answering.",
+          "source_id": "bush_whistle_over_voice"
+        }
+      ],
+      "withheld": [
+        {"id": "bush_ground_to_air_chart_withheld", "reason_id": "no_ground_to_air_signal_chart"},
+        {"id": "bush_movement_attracts_eye_withheld", "reason_id": "no_movement_attracts_the_eye_claim"}
+      ]
+    },
+    {
+      "section_id": "phone",
+      "title_en": "Your phone",
+      "actions": [
+        {
+          "id": "bush_phone_911_any_tower",
+          "order": 1,
+          "text_en": "In Canada, an emergency call goes through even with no cellular plan at all - it connects through any carrier's tower in range, not only your own. No bars is not the same as no 911.",
+          "source_id": "bush_phone_911_any_tower"
+        },
+        {
+          "id": "bush_phone_no_text_911",
+          "order": 2,
+          "text_en": "Texting 911 is not generally available in Canada. It is a registered service for people who are deaf, hard of hearing, or speech impaired, and you must dial first to use it. Do not count on texting 911 if you cannot get a voice call out.",
+          "source_id": "bush_phone_no_text_911"
+        }
+      ],
+      "withheld": [
+        {"id": "bush_phone_on_or_off_withheld", "reason_id": "no_on_foot_phone_instruction"}
+      ]
+    },
+    {
+      "section_id": "water",
+      "title_en": "Water",
+      "actions": [
+        {
+          "id": "bush_boil_water",
+          "order": 1,
+          "text_en": "A rolling boil for one minute makes water from an unknown source safe from bacteria, protozoa and viruses. Above 2000 metres, boil for at least two minutes.",
+          "source_id": "bush_boil_water"
+        },
+        {
+          "id": "bush_boiling_does_not_fix_everything",
+          "order": 2,
+          "text_en": "Boiling does not make water safe from fuel, chemicals, or radioactive contamination. If you know the source is fouled that way, boiling will not fix it.",
+          "source_id": "bush_boiling_does_not_fix_everything"
+        },
+        {
+          "id": "bush_do_not_eat_snow",
+          "order": 3,
+          "text_en": "Eating snow without melting it first lowers your body temperature. Melt it, then treat it the same as any other water.",
+          "source_id": "bush_do_not_eat_snow"
+        }
+      ]
+    },
+    {
+      "section_id": "direction",
+      "title_en": "Direction, and its real limits",
+      "actions": [
+        {
+          "id": "bush_keep_one_reference",
+          "order": 1,
+          "text_en": "People who cannot see the sun and have nothing to steer by reliably walk in circles, even in open ground - this has been measured. The single most useful thing you can do is pick one fixed point - the sun, a distant landmark, a consistent compass reading - and keep checking against it, rather than trying to compute an exact bearing.",
+          "source_id": "bush_keep_one_reference"
+        },
+        {
+          "id": "bush_phone_compass_limits",
+          "order": 2,
+          "text_en": "A phone compass with no GPS fix can only give you magnetic direction, not true north - the phone makers' own documentation says so. In northern Canada especially, magnetic direction can be off by several degrees or more, and it gets less reliable the further north you go. Do not trust a precise-looking number on a screen; use it only to hold a rough, consistent direction.",
+          "source_id": "bush_phone_compass_limits"
+        }
+      ],
+      "withheld": [
+        {"id": "bush_navigation_technique_withheld", "reason_id": "no_navigation_technique_for_someone_currently_lost"}
+      ]
+    },
+    {
+      "section_id": "folklore",
+      "title_en": "What does not actually point north",
+      "actions": [
+        {
+          "id": "bush_moss_debunked",
+          "order": 1,
+          "text_en": "Moss growing more on one side of a tree does not reliably point north. Many things besides direction affect where moss grows.",
+          "source_id": "bush_moss_debunked"
+        },
+        {
+          "id": "bush_tree_branches_debunked",
+          "order": 2,
+          "text_en": "Tree branches or growth pointing a reliable direction does not hold up either - trees have branches pointing every direction, and this method is not as reliable as a compass.",
+          "source_id": "bush_tree_branches_debunked"
+        },
+        {
+          "id": "bush_folklore_unresolved",
+          "order": 3,
+          "text_en": "We could not find a source, in either direction, on whether tree ring spacing, snow melt patterns, or which way the wind usually blows can tell you which way is north. We are not saying they work and we are not saying they do not - we found nothing either way, and we would rather say that than guess.",
+          "source_id": "bush_folklore_unresolved"
+        }
+      ]
+    },
+    {
+      "section_id": "food",
+      "title_en": "Food",
+      "actions": [
+        {
+          "id": "bush_no_food_identification",
+          "order": 1,
+          "text_en": "This pack will not tell you whether a plant, mushroom, or fish is safe to eat. Tested identification apps have been measured misidentifying poisonous species as edible, including the mushroom that kills the most people worldwide. A wrong call here can be fatal in a way that waiting on food is not. You can go far longer without food than most people expect. Getting found matters more.",
+          "source_id": "bush_no_food_identification"
+        }
+      ]
+    },
+    {
+      "section_id": "radio",
+      "title_en": "Radio",
+      "actions": [
+        {
+          "id": "bush_radio_licence_exempt",
+          "order": 1,
+          "text_en": "In Canada, FRS and GMRS radios, and CB radios on channel 9, can be used for emergency communication without a licence. Marine VHF channel 16 is monitored by the Coast Guard around the clock.",
+          "source_id": "bush_radio_licence_exempt"
+        },
+        {
+          "id": "bush_radio_beacon",
+          "order": 2,
+          "text_en": "If you carry one, a 406 MHz personal locator beacon is the most reliable way to summon help with no cell signal at all - any signal it sends is treated as a real distress call.",
+          "source_id": "bush_radio_beacon"
+        }
+      ],
+      "withheld": [
+        {"id": "bush_radio_legal_unresolved", "reason_id": "no_radio_legal_position"}
+      ]
+    }
+  ]
+}
