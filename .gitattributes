@@ -1,4 +1,4 @@
-# pack/ is vendored byte-for-byte from mvf-pack-erp, which is pure LF throughout. Git must
-# never normalise it on checkout or commit, on any platform, so the working tree always
-# matches the source git blob exactly.
+# pack/ is vendored byte-for-byte from the pack's own repository, which is pure LF throughout.
+# Git must never normalise it on checkout or commit, on any platform, so the working tree
+# always matches the source git blob exactly.
 pack/** -text
