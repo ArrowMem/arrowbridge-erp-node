@@ -156,3 +156,11 @@ this node and optional.
 This node is standalone software and it is the only place this content is answered today. The
 ArrowMem assistant does not yet provide guided emergency support, and nothing here should be
 read as saying it does.
+
+## Credits
+
+Built by ArrowMem Inc. with Claude (Anthropic) as the coding collaborator. Reviewed adversarially by a
+separate model session that did not write it, and verified on a second machine, a different operating
+system, that did not build it: the full suite, the closed command grammar driven by hand, and the radio
+transport exercised for real. The content is restated in our own words from the sources named in
+pack/NOTICE.md. Issues and pull requests welcome.
